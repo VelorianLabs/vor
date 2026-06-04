@@ -96,7 +96,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 flex flex-col sm:flex-row justify-between gap-4 text-xs text-white/40">
-          <p>© {new Date().getFullYear()} Vanguard Of Realty (VOR). All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Vintage Outlook Realty (VOR). All rights reserved.</p>
           <div className="flex gap-4">
             <Link href="/corporate/legal" className="hover:text-white">
               Legal

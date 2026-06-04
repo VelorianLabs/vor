@@ -5,11 +5,11 @@ export const metadata = { title: "About VOR" };
 export default function AboutPage() {
   return (
     <CorporatePageTemplate
-      title="About Vanguard Of Realty"
+      title="About Vintage Outlook Realty"
       description="Building Nigeria's most trusted real estate and infrastructure ecosystem."
     >
       <p>
-        Vanguard Of Realty (VOR) is a transparent, technology-driven real estate and infrastructure
+        Vintage Outlook Realty (VOR) is a transparent, technology-driven real estate and infrastructure
         company focused on verified land, trusted development, and structured investment opportunities
         across Nigeria.
       </p>

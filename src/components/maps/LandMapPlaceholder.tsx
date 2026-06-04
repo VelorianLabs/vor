@@ -11,7 +11,7 @@ export function LandMapPlaceholder({
 }: LandMapPlaceholderProps) {
   return (
     <div
-      className={`relative ${height} rounded-xl border-2 border-dashed border-vor-border bg-vor-cream overflow-hidden`}
+      className={`relative ${height} rounded-xl border-2 border-dashed border-vor-border bg-white overflow-hidden`}
     >
       <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-vor-navy/5 text-vor-navy mb-4">

@@ -1,234 +1,277 @@
-# VOR Platform — Vanguard Of Realty
+# VOR Platform
 
-A trust-first proptech and infrastructure company platform for verified Nigerian real estate. Built as a Phase 1 MVP with Next.js 15, TypeScript, and Tailwind CSS.
+**Vintage Outlook Realty (VOR)**
 
-## Project Overview
+A trust-first PropTech and infrastructure platform built to transform real estate discovery, verification, development, and investment across Nigeria.
 
-**Positioning:** *A transparent, technology-driven real estate and infrastructure ecosystem focused on verified land, trusted development, and structured investment opportunities.*
+VOR combines land intelligence, property development, and investment opportunities into a transparent ecosystem where buyers, developers, and investors can make informed decisions with confidence.
 
-**Trust pillars:** TRUST · TRANSPARENCY · VERIFIED REALTY
+---
 
-### Three Divisions
+## Vision
 
-| Division | Focus |
-|----------|--------|
-| **VOR Terrain** | Land intelligence, acquisition, verification, sales |
-| **VOR Home & Construct** | Construction, property development, housing marketplace |
-| **VOR Finance** | Project financing, investor relations, investment pools |
+To become Africa's most trusted digital real estate and infrastructure ecosystem by combining transparency, technology, and verified property intelligence.
 
-## Tech Stack
+## Mission
 
-| Layer | Technology |
-|-------|------------|
-| Framework | Next.js 15 (App Router) |
-| Language | TypeScript |
-| Styling | Tailwind CSS 3 |
-| Icons | Lucide React |
-| Fonts | DM Sans + Fraunces (Google Fonts) |
-| Data (MVP) | Mock data in `src/lib/data/mock.ts` |
-| API (stub) | Next.js Route Handlers (`/api/*`) |
-| Future backend | NestJS + PostgreSQL (planned Phase 2+) |
-| Maps (future) | Google Maps / Mapbox placeholder components |
+To eliminate uncertainty in real estate transactions through verified data, trusted processes, responsible development, and accessible investment opportunities.
 
-## Getting Started
+---
 
-### Prerequisites
+## Core Trust Principles
 
-- Node.js 18.18+ (20+ recommended)
-- npm
+* ✅ Trust
+* ✅ Transparency
+* ✅ Verified Realty
+* ✅ Compliance
+* ✅ Long-Term Value Creation
 
-### Install & run
+---
+
+# Business Divisions
+
+## VOR Terrain
+
+Land intelligence and acquisition platform focused on:
+
+* Verified land listings
+* Property verification
+* GPS and survey intelligence
+* Investment zone discovery
+* Title documentation review
+
+---
+
+## VOR Home & Construct
+
+Construction and property development division focused on:
+
+* Residential development
+* Construction services
+* Housing marketplace
+* Project management
+* Property lifecycle solutions
+
+---
+
+## VOR Finance
+
+Investment and funding division focused on:
+
+* Project financing
+* Investor relations
+* Structured investment opportunities
+* Development funding
+* Financial reporting
+
+---
+
+# Technology Stack
+
+| Layer          | Technology             |
+| -------------- | ---------------------- |
+| Framework      | Next.js 15             |
+| Language       | TypeScript             |
+| Styling        | Tailwind CSS           |
+| Icons          | Lucide React           |
+| Fonts          | DM Sans & Fraunces     |
+| Architecture   | App Router             |
+| Data Source    | Mock Data (MVP)        |
+| API Layer      | Next.js Route Handlers |
+| Future Backend | NestJS + PostgreSQL    |
+
+---
+
+# Current MVP Features
+
+### Public Platform
+
+* Modern institutional landing page
+* Verified property showcase
+* Investment opportunity sections
+* Corporate information pages
+* Transparency-focused user experience
+
+### Land Marketplace
+
+* Property filtering
+* Property detail pages
+* Verification center
+* Investment zones
+* Documentation framework
+
+### Construction Marketplace
+
+* Housing marketplace
+* Construction services portal
+* Project showcase
+* Client dashboard foundation
+
+### Investor Portal
+
+* Funding opportunities
+* Investor information
+* Financial reporting framework
+* Capital allocation structure
+
+### Corporate Platform
+
+* Governance pages
+* Compliance information
+* Investor relations
+* Fraud prevention center
+* Careers and partnerships
+
+---
+
+# Project Structure
+
+```text
+src/
+├── app/
+│   ├── terrain/
+│   ├── home-construct/
+│   ├── finance/
+│   ├── corporate/
+│   ├── admin/
+│   └── api/
+│
+├── components/
+│   ├── layout/
+│   ├── ui/
+│   ├── terrain/
+│   ├── properties/
+│   ├── maps/
+│   └── corporate/
+│
+└── lib/
+    ├── data/
+    ├── types/
+    ├── constants/
+    └── utils/
+```
+
+---
+
+# Getting Started
+
+## Prerequisites
+
+* Node.js 18+
+* npm
+
+## Installation
 
 ```bash
+git clone https://github.com/Okoronkwo-David-Creator01/vor.git
+
+cd vor
+
 npm install
+
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Visit:
 
-### Production build
+```text
+http://localhost:3000
+```
+
+---
+
+## Production Build
 
 ```bash
 npm run build
 npm start
 ```
 
-### Lint
+---
+
+## Linting
 
 ```bash
 npm run lint
 ```
 
-## Folder Structure
+---
 
-```
-├── src/
-│   ├── app/                    # App Router pages & API routes
-│   │   ├── page.tsx            # Homepage
-│   │   ├── terrain/            # Land marketplace, detail, verification, zones
-│   │   ├── home-construct/     # Homes, services, projects, dashboard
-│   │   ├── finance/            # Investor portal, funding, reports, loans
-│   │   ├── corporate/          # About, governance, legal, careers, etc.
-│   │   ├── admin/              # Admin dashboard (layout stub, no auth yet)
-│   │   └── api/                # Placeholder REST routes
-│   ├── components/
-│   │   ├── layout/             # Header, Footer, PageHero, RootShell
-│   │   ├── ui/                 # Button, badges, CTAs, headings
-│   │   ├── properties/         # PropertyCard, HomeCard
-│   │   ├── terrain/            # LandFilters
-│   │   ├── home/               # Homepage sections
-│   │   ├── maps/               # LandMapPlaceholder
-│   │   └── corporate/          # CorporatePageTemplate
-│   └── lib/
-│       ├── data/mock.ts        # Nigerian RE mock data
-│       ├── types/              # TypeScript interfaces
-│       ├── constants/          # Navigation, regulatory bodies
-│       └── utils/              # cn(), formatNaira()
-├── public/
-├── tailwind.config.ts          # VOR design tokens
-└── README.md
-```
+# Development Roadmap
 
-## Pages & Routes
+## Phase 1 — MVP (Current)
 
-### Main Site
+* Complete frontend platform
+* Property marketplace
+* Verification workflows
+* Investor portal foundation
+* Corporate ecosystem
 
-| Route | Description |
-|-------|-------------|
-| `/` | Homepage — hero, verified properties, map placeholder, estates, divisions, investor section, projects, testimonials, legal CTA |
+## Phase 2 — Platform Core
 
-### VOR Terrain
+* NestJS backend
+* PostgreSQL database
+* Authentication system
+* KYC verification
+* Interactive mapping
+* CMS integration
 
-| Route | Description |
-|-------|-------------|
-| `/terrain` | Land Marketplace with filters (state, LGA, title type, price, size, grade) |
-| `/terrain/[id]` | Property detail — GPS, title, survey, ROI, inspection booking, documents |
-| `/terrain/verification` | Land Verification Center |
-| `/terrain/zones` | Investment Zones |
+## Phase 3 — Growth
 
-### VOR Home & Construct
+* Payment integrations
+* Loan marketplace
+* Investor onboarding
+* Advanced reporting
+* Mobile application
 
-| Route | Description |
-|-------|-------------|
-| `/home-construct` | Homes Marketplace (buy / rent / lease tabs) |
-| `/home-construct/services` | Construction Services |
-| `/home-construct/projects` | Ongoing Projects |
-| `/home-construct/dashboard` | Client Dashboard placeholder |
+## Phase 4 — Scale
 
-### VOR Finance
+* Multi-state expansion
+* AI-assisted property risk scoring
+* Advanced analytics
+* Strategic partnerships
+* Digital land registry initiatives
 
-| Route | Description |
-|-------|-------------|
-| `/finance` | Investor Portal |
-| `/finance/funding` | Project Funding |
-| `/finance/reports` | Financial Reports |
-| `/finance/loans` | Loan Marketplace placeholder (Phase 3) |
+---
 
-### Corporate
+# Regulatory Alignment
 
-| Route | Description |
-|-------|-------------|
-| `/corporate/about` | About VOR |
-| `/corporate/governance` | Governance |
-| `/corporate/legal` | Legal Compliance |
-| `/corporate/careers` | Careers |
-| `/corporate/partners` | Partners |
-| `/corporate/contact` | Contact form |
-| `/corporate/investor-relations` | Investor Relations |
-| `/corporate/transparency` | Transparency Center |
-| `/corporate/fraud-prevention` | Fraud Prevention Center |
+VOR's operational framework references recognized Nigerian regulatory and professional institutions, including:
 
-### Admin & API
+* Corporate Affairs Commission (CAC)
+* Securities and Exchange Commission Nigeria (SEC)
+* Federal Ministry of Housing & Urban Development (FMHUD)
+* Lagos State Lands Bureau (LSLB)
+* Surveyors Council of Nigeria (SURCON)
+* Estate Surveyors and Valuers Registration Board of Nigeria (ESVARBON)
 
-| Route | Description |
-|-------|-------------|
-| `/admin` | Admin dashboard placeholder (no auth — Phase 2) |
-| `/api/health` | Health check JSON |
-| `/api/properties` | Mock land listings API |
+---
 
-## Roadmap Phases
+# Design System
 
-### Phase 1 — MVP (✅ Current)
+| Element          | Value    |
+| ---------------- | -------- |
+| Primary Navy     | #0B1426  |
+| Premium Gold     | #C4A052  |
+| Trust Green      | #1A6B4A  |
+| Cream Background | #F8F6F1  |
+| Display Font     | Fraunces |
+| Body Font        | DM Sans  |
 
-- [x] Next.js app with institutional design system
-- [x] All major marketing & division pages
-- [x] Land marketplace with URL-based filters
-- [x] Property detail template with inspection UI
-- [x] Mock Nigerian data (Lagos, Abuja, Ogun; C of O, etc.)
-- [x] Map placeholder component
-- [x] Admin layout stub
-- [x] API route placeholders
+---
 
-### Phase 2 — Platform Core (Planned)
+# Status
 
-- [ ] NestJS backend + PostgreSQL
-- [ ] Authentication (NextAuth or JWT via NestJS)
-- [ ] Client dashboard & investor portal (authenticated)
-- [ ] KYC-gated document downloads
-- [ ] Google Maps / Mapbox integration
-- [ ] CMS for content management
-- [ ] Email notifications (inspection bookings, etc.)
+🚧 Active Development
 
-### Phase 3 — Growth (Planned)
+This repository currently represents the Phase 1 MVP of the VOR ecosystem and serves as the foundation for future property verification, development, financing, and investment services.
 
-- [ ] Loan marketplace partnerships
-- [ ] SEC-aligned investment pool compliance
-- [ ] Payment integration (Paystack / Flutterwave)
-- [ ] Advanced analytics & reporting
-- [ ] Mobile app (React Native)
+---
 
-### Phase 4 — Scale (Planned)
+# License
 
-- [ ] Multi-state expansion beyond SW/North-Central
-- [ ] AI-assisted title risk scoring
-- [ ] Blockchain land registry pilot (optional)
-- [ ] White-label for partner developers
+Proprietary Software
 
-## Regulatory Bodies Reference
+Copyright © Vintage Outlook Realty (VOR).
 
-VOR references alignment with Nigerian regulatory and professional bodies:
-
-| Abbr | Body |
-|------|------|
-| LSLB | Lagos State Lands Bureau |
-| FMHUD | Federal Ministry of Housing & Urban Development |
-| FCTA | FCT Administration |
-| OGMPP | Ogun State Ministry of Physical Planning |
-| CAC | Corporate Affairs Commission |
-| SEC Nigeria | Securities and Exchange Commission |
-| SURCON | Surveyors Council of Nigeria |
-| ESVARBON | Estate Surveyors and Valuers Registration Board |
-
-## Brand Guidelines Summary
-
-| Token | Value | Usage |
-|-------|-------|--------|
-| Navy | `#0B1426` | Primary brand, headers, footer |
-| Gold | `#C4A052` | Accents, CTAs, premium highlights |
-| Trust green | `#1A6B4A` | Verification, success, ROI |
-| Cream | `#F8F6F1` | Section backgrounds |
-| Display font | Fraunces | Headlines |
-| Body font | DM Sans | UI and body text |
-
-**Tone:** Institutional, secure, premium — not flashy agent marketing.
-
-**Badges:** `VOR Verified` (green), `In Review` (amber), `Pending` (slate).
-
-## Next Steps for Development
-
-1. **Backend:** Scaffold NestJS monorepo or separate API; migrate mock data to PostgreSQL with Prisma/TypeORM.
-2. **Auth:** Add NextAuth.js or JWT middleware; protect `/admin` and client/investor dashboards.
-3. **Maps:** Integrate Mapbox GL JS with plot GeoJSON layers from survey data.
-4. **Forms:** Wire contact and inspection forms to email/CRM (e.g. Resend, HubSpot).
-5. **Images:** Move to CDN; add local fallbacks for offline dev.
-6. **Testing:** Add Playwright E2E for critical flows (marketplace filters, property detail).
-7. **Deployment:** Vercel for frontend; Railway/Render for NestJS API.
-
-## License
-
-Proprietary — Vanguard Of Realty. All rights reserved.
-#   v o r  
- #   v o r  
- #   v o r  
- #   v o r  
- 
+All rights reserved.
