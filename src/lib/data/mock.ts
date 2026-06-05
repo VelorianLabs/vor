@@ -10,12 +10,12 @@ import type {
 export const landProperties: LandProperty[] = [
   {
     id: "vor-lag-001",
-    title: "Epe Waterfront Estate Plot",
-    state: "Lagos",
-    lga: "Epe",
-    area: "Lekki-Epe Expressway Corridor",
+    title: "Ndukego Housing Parcels",
+    state: "Abuja",
+    lga: "Kuje",
+    area: "Kuje Area Council",
     price: 18500000,
-    sizeSqm: 600,
+    sizeSqm: 1200,
     titleType: "C of O",
     investmentGrade: "A",
     verificationStatus: "verified",
@@ -24,7 +24,7 @@ export const landProperties: LandProperty[] = [
     image: "https://images.unsplash.com/photo-1520962917968-2179c68472b6?w=800&q=80",
     featured: true,
     description:
-      "Prime waterfront-adjacent parcel with verified Certificate of Occupancy. Ideal for residential estate development or land banking within Lagos State's emerging Epe growth corridor.",
+      "Ndukego Housing Plots - ThisPrime waterfront-adjacent parcel with verified Certificate of Occupancy. Ideal for residential estate development or land banking within Lagos State's emerging Epe growth corridor.",
     surveyAvailable: true,
     documents: [
       { name: "Certificate of Occupancy", type: "PDF" },
