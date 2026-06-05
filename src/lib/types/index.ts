@@ -6,6 +6,13 @@ export type InvestmentGrade = "A" | "B" | "C";
 
 export type VerificationStatus = "verified" | "pending" | "in-review";
 
+// Payment types
+export type PaymentType = "PROPERTY_PURCHASE" | "RESERVATION" | "VERIFICATION_FEE" | "INSPECTION_FEE" | "INSTALLMENT" | "INVESTMENT" | "SERVICE_FEE";
+
+export type PaymentMethod = "PAYSTACK" | "FLUTTERWAVE" | "BANK_TRANSFER" | "CASH";
+
+export type PaymentStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED" | "REFUNDED" | "CANCELLED";
+
 export interface LandProperty {
   id: string;
   title: string;

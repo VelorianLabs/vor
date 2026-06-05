@@ -1,0 +1,2011 @@
+// VOR Phase 2 Database Schema
+// PostgreSQL with Prisma ORM
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// AUTHENTICATION & AUTHORIZATION
+// ============================================
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  CLIENT
+  INVESTOR
+  CONTRACTOR
+  SURVEY_OFFICER
+  LEGAL_OFFICER
+  FINANCE_OFFICER
+  SALES_OFFICER
+}
+
+enum Permission {
+  // User Management
+  USER_READ
+  USER_WRITE
+  USER_DELETE
+  USER_ASSIGN_ROLES
+  
+  // Property Management
+  PROPERTY_READ
+  PROPERTY_WRITE
+  PROPERTY_DELETE
+  PROPERTY_VERIFY
+  
+  // Investment Management
+  INVESTMENT_READ
+  INVESTMENT_WRITE
+  INVESTMENT_APPROVE
+  INVESTMENT_DELETE
+  
+  // Payment Management
+  PAYMENT_READ
+  PAYMENT_PROCESS
+  PAYMENT_REFUND
+  PAYMENT_DELETE
+  
+  // Construction Management
+  CONSTRUCTION_READ
+  CONSTRUCTION_WRITE
+  CONSTRUCTION_APPROVE
+  CONSTRUCTION_DELETE
+  
+  // Document Management
+  DOCUMENT_READ
+  DOCUMENT_WRITE
+  DOCUMENT_DELETE
+  DOCUMENT_VERIFY
+  
+  // Verification Management
+  VERIFICATION_READ
+  VERIFICATION_REVIEW
+  VERIFICATION_APPROVE
+  VERIFICATION_REJECT
+  
+  // CRM Management
+  LEAD_READ
+  LEAD_WRITE
+  LEAD_DELETE
+  LEAD_ASSIGN
+  
+  // Support Management
+  TICKET_READ
+  TICKET_WRITE
+  TICKET_ASSIGN
+  TICKET_DELETE
+  
+  // Analytics
+  ANALYTICS_READ
+  ANALYTICS_EXPORT
+  
+  // System Administration
+  SYSTEM_READ
+  SYSTEM_WRITE
+  AUDIT_READ
+  SETTINGS_MANAGE
+}
+
+model User {
+  id                String        @id @default(cuid())
+  email             String        @unique
+  emailVerified     DateTime?
+  password          String
+  name              String?
+  phone             String?
+  avatar            String?
+  
+  role              UserRole      @default(CLIENT)
+  permissions       Permission[]  // Computed via role_permissions
+  
+  isActive          Boolean       @default(true)
+  isMfaEnabled      Boolean       @default(false)
+  mfaSecret         String?
+  
+  lastLoginAt       DateTime?
+  lastLoginIp       String?
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  deletedAt         DateTime?
+  
+  // Relations
+  properties        Property[]
+  investments       Investment[]
+  payments          Payment[]
+  documents         Document[]
+  supportTickets    SupportTicket[] @relation("TicketCreator")
+  assignedTickets   SupportTicket[] @relation("TicketAssignee")
+  verificationReviews VerificationReview[]
+  contractorProfile Contractor?
+  officerProfile    Officer?
+  auditLogs         AuditLog[]
+  notifications     Notification[]
+  notificationPreferences NotificationPreferences?
+  crmLeads          CRMLead[]
+  activities        Activity[]
+  
+  // Phase 3: Fractional Investment
+  assetOwnerships   AssetOwnership[]
+  transfersFrom     UnitTransfer[] @relation("TransferFrom")
+  transfersTo       UnitTransfer[] @relation("TransferTo")
+  
+  // Phase 3: Digital Escrow
+  escrowAccountsBuyer EscrowAccount[] @relation("EscrowBuyer")
+  escrowAccountsSeller EscrowAccount[] @relation("EscrowSeller")
+  
+  // Phase 3: Digital Land Registry
+  registryRecords DigitalRegistryRecord[] @relation("RegistryOwner")
+  ownershipHistory OwnershipHistory[] @relation("HistoryOwner")
+  
+  // Phase 3: Mortgage Infrastructure
+  mortgageApplications MortgageApplication[]
+  
+  // Phase 3: Lending Platform
+  loanApplications LoanApplication[]
+  
+  // Phase 3: Institutional Investor
+  institutionalInvestor InstitutionalInvestor?
+  
+  // Phase 3: Advanced Compliance
+  kycProfile KYCProfile?
+  amlAlerts AMLAlert[]
+  
+  @@index([email])
+  @@index([role])
+  @@index([isActive])
+  @@map("users")
+}
+
+model Role {
+  id          String      @id @default(cuid())
+  name        String      @unique
+  description String?
+  permissions Permission[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  @@map("roles")
+}
+
+model RolePermission {
+  id          String     @id @default(cuid())
+  roleId      String
+  permission  Permission
+  createdAt   DateTime   @default(now())
+  
+  @@unique([roleId, permission])
+  @@index([roleId])
+  @@map("role_permissions")
+}
+
+// ============================================
+// PROPERTIES
+// ============================================
+
+enum PropertyType {
+  LAND
+  HOME
+  COMMERCIAL
+}
+
+enum TitleType {
+  C_OF_O
+  GOVERNORS_CONSENT
+  DEED_OF_ASSIGNMENT
+  GAZETTE
+  EXCISION_IN_PROCESS
+}
+
+enum InvestmentGrade {
+  A
+  B
+  C
+}
+
+enum VerificationStatus {
+  VERIFIED
+  PENDING
+  IN_REVIEW
+  REJECTED
+}
+
+model Property {
+  id                String            @id @default(cuid())
+  title             String
+  type              PropertyType
+  state             String
+  lga               String
+  area              String
+  price             Decimal
+  sizeSqm           Int?
+  
+  // Land-specific
+  titleType         TitleType?
+  investmentGrade   InvestmentGrade?
+  gps               Json?             // { lat: number, lng: number }
+  roiProjection     Decimal?
+  
+  // Home-specific
+  bedrooms          Int?
+  bathrooms         Int?
+  listingType       String?           // buy, rent, lease
+  
+  verificationStatus VerificationStatus @default(PENDING)
+  featured          Boolean           @default(false)
+  description       String            @db.Text
+  surveyAvailable   Boolean           @default(false)
+  
+  ownerId           String
+  owner             User              @relation(fields: [ownerId], references: [id])
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  deletedAt         DateTime?
+  
+  // Relations
+  documents         PropertyDocument[]
+  verificationRequests VerificationRequest[]
+  constructionProjects ConstructionProject[]
+  investmentUnits    InvestmentUnit[]
+  
+  // Phase 3: Digital Escrow
+  escrowAccounts    EscrowAccount[]
+  
+  // Phase 3: Mortgage Infrastructure
+  mortgageApplications MortgageApplication[]
+  
+  // Phase 3: AI Property Intelligence
+  valuationReports  ValuationReport[]
+  
+  // Phase 3: Digital Asset Infrastructure
+  assetTokens       AssetToken[]
+  
+  // Phase 3: Digital Land Registry
+  registryRecords   DigitalRegistryRecord[]
+  
+  @@index([type])
+  @@index([state])
+  @@index([verificationStatus])
+  @@index([ownerId])
+  @@map("properties")
+}
+
+model PropertyDocument {
+  id          String   @id @default(cuid())
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  name        String
+  type        String   // PDF, IMAGE, etc.
+  url         String
+  size        Int?
+  uploadedAt  DateTime @default(now())
+  
+  @@index([propertyId])
+  @@map("property_documents")
+}
+
+// ============================================
+// INVESTMENTS
+// ============================================
+
+enum InvestmentStatus {
+  DRAFT
+  REVIEW
+  APPROVED
+  OPEN_FOR_INVESTMENT
+  FUNDED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model InvestmentProject {
+  id                  String             @id @default(cuid())
+  name                String
+  description         String             @db.Text
+  state               String
+  location            String
+  
+  fundingGoal         Decimal
+  amountRaised        Decimal            @default(0)
+  minInvestment       Decimal
+  roiProjection       Decimal
+  riskScore           Int                // 1-10
+  termMonths          Int
+  
+  status              InvestmentStatus   @default(DRAFT)
+  
+  developmentTimeline String             @db.Text
+  projectDocuments    Json               // Array of document URLs
+  
+  startDate           DateTime?
+  endDate             DateTime?
+  
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  deletedAt           DateTime?
+  
+  // Relations
+  investments         Investment[]
+  constructionProjects ConstructionProject[]
+  reports             InvestmentReport[]
+  investmentUnits     InvestmentUnit[]
+  
+  // Phase 3: Digital Escrow
+  escrowAccounts       EscrowAccount[]
+  
+  @@index([status])
+  @@index([state])
+  @@map("investment_projects")
+}
+
+model Investment {
+  id              String            @id @default(cuid())
+  projectId       String
+  project         InvestmentProject @relation(fields: [projectId], references: [id])
+  
+  investorId      String
+  investor        User              @relation(fields: [investorId], references: [id])
+  
+  amount          Decimal
+  shares          Int
+  expectedReturn  Decimal
+  
+  status          String            @default("active") // active, completed, cancelled
+  
+  investedAt      DateTime          @default(now())
+  maturityDate    DateTime?
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  deletedAt       DateTime?
+  
+  @@index([projectId])
+  @@index([investorId])
+  @@index([status])
+  @@map("investments")
+}
+
+model InvestmentReport {
+  id          String            @id @default(cuid())
+  projectId   String
+  project     InvestmentProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  title       String
+  period      String
+  type        String            // quarterly, annual, project
+  content     Json             // Report data
+  fileUrl     String?
+  
+  publishedAt DateTime          @default(now())
+  createdAt   DateTime          @default(now())
+  
+  @@index([projectId])
+  @@map("investment_reports")
+}
+
+// ============================================
+// PAYMENTS
+// ============================================
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum PaymentType {
+  PROPERTY_PURCHASE
+  RESERVATION
+  VERIFICATION_FEE
+  INSPECTION_FEE
+  INSTALLMENT
+  INVESTMENT
+  SERVICE_FEE
+}
+
+enum PaymentMethod {
+  PAYSTACK
+  FLUTTERWAVE
+  BANK_TRANSFER
+  CASH
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  reference       String        @unique
+  
+  type            PaymentType
+  method          PaymentMethod
+  amount          Decimal
+  currency        String        @default("NGN")
+  
+  status          PaymentStatus @default(PENDING)
+  
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  
+  propertyId      String?
+  investmentId    String?
+  invoiceId       String?
+  
+  metadata        Json?         // Payment gateway response
+  failureReason    String?
+  
+  paidAt          DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+  
+  // Relations
+  invoice         Invoice?      @relation(fields: [invoiceId], references: [id])
+  receipt         Receipt?
+  
+  @@index([userId])
+  @@index([status])
+  @@index([reference])
+  @@index([type])
+  @@map("payments")
+}
+
+model Invoice {
+  id              String    @id @default(cuid())
+  invoiceNumber   String    @unique
+  
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  
+  type            PaymentType
+  amount          Decimal
+  dueDate         DateTime
+  
+  status          String    @default("pending") // pending, paid, overdue, cancelled
+  
+  description     String    @db.Text
+  metadata        Json?
+  
+  paidAt          DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+  
+  // Relations
+  payments        Payment[]
+  
+  @@index([userId])
+  @@index([status])
+  @@index([invoiceNumber])
+  @@map("invoices")
+}
+
+model PaymentSchedule {
+  id              String    @id @default(cuid())
+  userId          String
+  propertyId      String?
+  
+  installmentNumber Int
+  amount          Decimal
+  dueDate         DateTime
+  
+  status          String    @default("pending") // pending, paid, overdue
+  paidAt          DateTime?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  @@index([userId])
+  @@index([propertyId])
+  @@index([dueDate])
+  @@map("payment_schedules")
+}
+
+model Receipt {
+  id              String    @id @default(cuid())
+  paymentId       String    @unique
+  payment         Payment   @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  
+  receiptNumber   String    @unique
+  amount          Decimal
+  fileUrl         String
+  
+  issuedAt        DateTime  @default(now())
+  
+  @@index([receiptNumber])
+  @@map("receipts")
+}
+
+// ============================================
+// CONSTRUCTION
+// ============================================
+
+enum ProjectStatus {
+  PLANNING
+  APPROVED
+  IN_PROGRESS
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+model ConstructionProject {
+  id              String        @id @default(cuid())
+  name            String
+  location        String
+  state           String
+  
+  propertyId      String?
+  property        Property?    @relation(fields: [propertyId], references: [id])
+  investmentProjectId String?
+  investmentProject InvestmentProject? @relation(fields: [investmentProjectId], references: [id])
+  
+  budget          Decimal
+  spent           Decimal       @default(0)
+  
+  units           Int
+  progress        Int           @default(0) // 0-100
+  status          ProjectStatus @default(PLANNING)
+  
+  startDate       DateTime?
+  completionDate  DateTime?
+  actualCompletionDate DateTime?
+  
+  description     String        @db.Text
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+  
+  // Relations
+  milestones      Milestone[]
+  contractorAssignments ContractorAssignment[]
+  media           ConstructionMedia[]
+  
+  // Phase 3: Lending Platform
+  loanApplications LoanApplication[]
+  
+  @@index([status])
+  @@index([state])
+  @@map("construction_projects")
+}
+
+model Milestone {
+  id              String             @id @default(cuid())
+  projectId       String
+  project         ConstructionProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  name            String
+  description     String            @db.Text
+  targetDate      DateTime
+  completedDate   DateTime?
+  
+  progress        Int               @default(0)
+  status          String            @default("pending") // pending, in_progress, completed, delayed
+  
+  budget          Decimal?
+  spent           Decimal?          @default(0)
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  @@index([projectId])
+  @@index([status])
+  @@map("milestones")
+}
+
+model Contractor {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  company         String?
+  license         String?
+  specializations String[] // Array of specializations
+  rating          Decimal? @default(0)
+  
+  isActive        Boolean  @default(true)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  assignments     ContractorAssignment[]
+  
+  @@index([userId])
+  @@map("contractors")
+}
+
+model ContractorAssignment {
+  id              String             @id @default(cuid())
+  projectId       String
+  project         ConstructionProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  contractorId    String
+  contractor      Contractor        @relation(fields: [contractorId], references: [id])
+  
+  role            String
+  startDate       DateTime
+  endDate         DateTime?
+  
+  status          String            @default("active") // active, completed, terminated
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  @@unique([projectId, contractorId])
+  @@index([projectId])
+  @@index([contractorId])
+  @@map("contractor_assignments")
+}
+
+model ConstructionMedia {
+  id              String             @id @default(cuid())
+  projectId       String
+  project         ConstructionProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  type            String             // image, video, report, inspection
+  title           String
+  description     String?            @db.Text
+  url             String
+  thumbnailUrl    String?
+  
+  uploadedBy      String?            // User ID
+  uploadedAt      DateTime           @default(now())
+  
+  @@index([projectId])
+  @@index([type])
+  @@map("construction_media")
+}
+
+// ============================================
+// DOCUMENTS
+// ============================================
+
+enum DocumentType {
+  SURVEY_PLAN
+  ALLOCATION_LETTER
+  DEED
+  VERIFICATION_REPORT
+  AGREEMENT
+  CONTRACT
+  CERTIFICATE
+  OTHER
+}
+
+model Document {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  
+  type            DocumentType
+  title           String
+  description     String?     @db.Text
+  
+  fileUrl         String
+  fileName        String
+  fileSize        Int
+  mimeType        String
+  
+  version         Int         @default(1)
+  isLatest        Boolean     @default(true)
+  
+  propertyId      String?
+  
+  uploadedAt      DateTime    @default(now())
+  createdAt       DateTime    @default(now())
+  deletedAt       DateTime?
+  
+  @@index([userId])
+  @@index([type])
+  @@index([propertyId])
+  @@map("documents")
+}
+
+// ============================================
+// VERIFICATION
+// ============================================
+
+enum VerificationRequestStatus {
+  SUBMITTED
+  ASSIGNED
+  SURVEY_REVIEW
+  LEGAL_REVIEW
+  APPROVED
+  REJECTED
+  ADDITIONAL_INFO
+}
+
+model VerificationRequest {
+  id              String                    @id @default(cuid())
+  propertyId      String
+  property        Property                  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  
+  requesterId     String
+  documents       Json                      // Array of document URLs
+  
+  status          VerificationRequestStatus @default(SUBMITTED)
+  
+  submittedAt     DateTime                  @default(now())
+  completedAt     DateTime?
+  
+  // Relations
+  reviews         VerificationReview[]
+  
+  @@index([propertyId])
+  @@index([status])
+  @@map("verification_requests")
+}
+
+model VerificationReview {
+  id              String              @id @default(cuid())
+  requestId       String
+  request         VerificationRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  
+  reviewerId      String
+  reviewer        User                @relation(fields: [reviewerId], references: [id])
+  
+  reviewType      String              // survey, legal, final
+  comments        String              @db.Text
+  decision        String              // approved, rejected, request_info
+  
+  reviewedAt      DateTime            @default(now())
+  
+  @@index([requestId])
+  @@index([reviewerId])
+  @@map("verification_reviews")
+}
+
+model Officer {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type            String   // survey_officer, legal_officer
+  license         String?
+  specialization  String[]
+  
+  isActive        Boolean  @default(true)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([userId])
+  @@map("officers")
+}
+
+// ============================================
+// CRM
+// ============================================
+
+enum LeadStatus {
+  LEAD
+  QUALIFIED
+  INSPECTION
+  NEGOTIATION
+  RESERVED
+  PURCHASED
+  CLOSED
+  LOST
+}
+
+enum LeadSource {
+  WEBSITE
+  REFERRAL
+  SOCIAL_MEDIA
+  DIRECT_CONTACT
+  ADVERTISEMENT
+  EVENT
+}
+
+model CRMLead {
+  id              String      @id @default(cuid())
+  
+  name            String
+  email           String?
+  phone           String?
+  company         String?
+  
+  status          LeadStatus  @default(LEAD)
+  source          LeadSource
+  
+  propertyInterest String?
+  budget          Decimal?
+  
+  ownerId         String?
+  owner           User?       @relation(fields: [ownerId], references: [id])
+  
+  notes           String?     @db.Text
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  deletedAt       DateTime?
+  
+  // Relations
+  activities      Activity[]
+  
+  @@index([status])
+  @@index([source])
+  @@index([ownerId])
+  @@map("crm_leads")
+}
+
+enum ActivityType {
+  CALL
+  EMAIL
+  MEETING
+  PROPERTY_VISIT
+  FOLLOW_UP
+  NOTE
+}
+
+model Activity {
+  id              String      @id @default(cuid())
+  leadId          String?
+  lead            CRMLead?    @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  
+  type            ActivityType
+  title           String
+  description     String?     @db.Text
+  duration        Int?        // minutes
+  
+  scheduledAt     DateTime?
+  completedAt     DateTime?
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  @@index([leadId])
+  @@index([userId])
+  @@index([scheduledAt])
+  @@map("activities")
+}
+
+// ============================================
+// SUPPORT
+// ============================================
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_CUSTOMER
+  RESOLVED
+  CLOSED
+}
+
+enum TicketCategory {
+  LEGAL
+  VERIFICATION
+  CONSTRUCTION
+  PAYMENT
+  TECHNICAL
+  GENERAL
+}
+
+model SupportTicket {
+  id              String        @id @default(cuid())
+  ticketNumber    String        @unique
+  
+  userId          String
+  user            User          @relation("TicketCreator", fields: [userId], references: [id])
+  
+  assignedToId    String?
+  assignedTo      User?         @relation("TicketAssignee", fields: [assignedToId], references: [id])
+  
+  category        TicketCategory
+  subject         String
+  description     String        @db.Text
+  priority        String        @default("medium") // low, medium, high, urgent
+  
+  status          TicketStatus  @default(OPEN)
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  resolvedAt      DateTime?
+  
+  // Relations
+  messages        TicketMessage[]
+  
+  @@index([userId])
+  @@index([assignedToId])
+  @@index([status])
+  @@index([category])
+  @@map("support_tickets")
+}
+
+model TicketMessage {
+  id              String        @id @default(cuid())
+  ticketId        String
+  ticket          SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  userId          String
+  isInternal      Boolean       @default(false)
+  
+  message         String        @db.Text
+  attachments     Json?         // Array of file URLs
+  
+  createdAt       DateTime      @default(now())
+  
+  @@index([ticketId])
+  @@map("ticket_messages")
+}
+
+// ============================================
+// PHASE 3: FRACTIONAL INVESTMENT PLATFORM
+// ============================================
+
+enum InvestmentUnitStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+  LOCKED
+  TRANSFER_PENDING
+}
+
+enum AssetOwnershipStatus {
+  ACTIVE
+  TRANSFERRED
+  SOLD
+  LIQUIDATED
+}
+
+enum TransferStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+  CANCELLED
+}
+
+model InvestmentUnit {
+  id              String              @id @default(cuid())
+  unitNumber      String              // Unique unit identifier (e.g., "U-001")
+  
+  propertyId      String?
+  property        Property?           @relation(fields: [propertyId], references: [id])
+  
+  investmentPoolId String?
+  investmentPool  InvestmentPool?      @relation(fields: [investmentPoolId], references: [id])
+  
+  totalUnits      Int                 // Total units in this batch
+  availableUnits  Int                 // Units available for purchase
+  unitPrice       Decimal             // Price per unit
+  minPurchase     Int                 @default(1) // Minimum units per purchase
+  maxPurchase     Int?                // Maximum units per purchase (optional)
+  
+  status          InvestmentUnitStatus @default(AVAILABLE)
+  
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  expiresAt       DateTime?           // Optional expiration for reservations
+  
+  // Relations
+  ownerships      AssetOwnership[]
+  transfers       UnitTransfer[]
+  
+  @@index([propertyId])
+  @@index([investmentPoolId])
+  @@index([status])
+  @@map("investment_units")
+}
+
+model AssetOwnership {
+  id              String                @id @default(cuid())
+  
+  userId          String
+  user            User                  @relation(fields: [userId], references: [id])
+  
+  unitId          String
+  unit            InvestmentUnit        @relation(fields: [unitId], references: [id])
+  
+  unitsOwned      Int                   // Number of units owned
+  ownershipPercentage Decimal           // Calculated percentage of total asset
+  investmentValue Decimal              // Total value of ownership
+  
+  purchasePrice   Decimal              // Price at which units were purchased
+  currentValue    Decimal              // Current value of ownership
+  
+  status          AssetOwnershipStatus  @default(ACTIVE)
+  
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  purchasedAt     DateTime              @default(now())
+  
+  // Relations
+  returns         OwnershipReturn[]
+  
+  @@unique([userId, unitId])
+  @@index([userId])
+  @@index([unitId])
+  @@index([status])
+  @@map("asset_ownership")
+}
+
+model OwnershipReturn {
+  id              String        @id @default(cuid())
+  
+  ownershipId     String
+  ownership       AssetOwnership @relation(fields: [ownershipId], references: [id], onDelete: Cascade)
+  
+  type            String        // DIVIDEND, APPRECIATION, YIELD
+  amount          Decimal
+  percentage      Decimal?      // Return percentage
+  
+  period          String        // e.g., "2024-Q1"
+  paidAt          DateTime?
+  
+  createdAt       DateTime      @default(now())
+  
+  @@index([ownershipId])
+  @@index([period])
+  @@map("ownership_returns")
+}
+
+model UnitTransfer {
+  id              String        @id @default(cuid())
+  transferNumber  String        @unique
+  
+  unitId          String
+  unit            InvestmentUnit @relation(fields: [unitId], references: [id])
+  
+  fromUserId      String
+  fromUser        User          @relation("TransferFrom", fields: [fromUserId], references: [id])
+  
+  toUserId        String
+  toUser          User          @relation("TransferTo", fields: [toUserId], references: [id])
+  
+  units           Int           // Number of units being transferred
+  pricePerUnit    Decimal       // Transfer price per unit
+  totalValue      Decimal       // Total transfer value
+  
+  status          TransferStatus @default(PENDING)
+  
+  initiatedAt     DateTime      @default(now())
+  completedAt     DateTime?
+  
+  // Approval workflow
+  approvedBy      String?
+  approvedAt      DateTime?
+  rejectionReason String?       @db.Text
+  
+  // Relations
+  documents       TransferDocument[]
+  
+  @@index([unitId])
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@index([status])
+  @@map("unit_transfers")
+}
+
+model TransferDocument {
+  id              String        @id @default(cuid())
+  
+  transferId      String
+  transfer        UnitTransfer  @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  
+  type            String        // AGREEMENT, RECEIPT, CERTIFICATE
+  title           String
+  fileUrl         String
+  fileSize        Int
+  
+  uploadedBy      String
+  uploadedAt      DateTime      @default(now())
+  
+  @@index([transferId])
+  @@map("transfer_documents")
+}
+
+// ============================================
+// PHASE 3: DIGITAL ESCROW SYSTEM
+// ============================================
+
+enum EscrowTransactionType {
+  PROPERTY_PURCHASE
+  LAND_PURCHASE
+  CONSTRUCTION_CONTRACT
+  INVESTMENT_COMMITMENT
+}
+
+enum EscrowStatus {
+  INITIATED
+  FUNDED
+  VERIFICATION
+  APPROVAL
+  RELEASE
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum ReleaseType {
+  PARTIAL
+  FULL
+  REFUND
+}
+
+model EscrowAccount {
+  id              String        @id @default(cuid())
+  accountNumber   String        @unique
+  
+  // Parties
+  buyerId         String
+  buyer           User          @relation("EscrowBuyer", fields: [buyerId], references: [id])
+  
+  sellerId        String
+  seller          User          @relation("EscrowSeller", fields: [sellerId], references: [id])
+  
+  // Transaction details
+  type            EscrowTransactionType
+  amount          Decimal
+  currency        String        @default("NGN")
+  
+  // Associated entities
+  propertyId      String?
+  property        Property?     @relation(fields: [propertyId], references: [id])
+  
+  investmentId    String?
+  investment      Investment?   @relation(fields: [investmentId], references: [id])
+  
+  status          EscrowStatus   @default(INITIATED)
+  
+  // Milestones
+  fundedAt        DateTime?
+  verifiedAt      DateTime?
+  approvedAt      DateTime?
+  releasedAt       DateTime?
+  completedAt     DateTime?
+  
+  // Release conditions
+  releaseConditions Json?       // Array of release conditions
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Relations
+  transactions    EscrowTransaction[]
+  releases        EscrowRelease[]
+  documents       EscrowDocument[]
+  
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([status])
+  @@map("escrow_accounts")
+}
+
+model EscrowTransaction {
+  id              String        @id @default(cuid())
+  
+  escrowAccountId String
+  escrowAccount   EscrowAccount @relation(fields: [escrowAccountId], references: [id], onDelete: Cascade)
+  
+  type            String        // DEPOSIT, WITHDRAWAL, FEE
+  amount          Decimal
+  reference       String        @unique
+  method          String        // PAYSTACK, FLUTTERWAVE, BANK_TRANSFER
+  status          String        @default("pending")
+  
+  processedAt     DateTime?
+  
+  createdAt       DateTime      @default(now())
+  
+  @@index([escrowAccountId])
+  @@index([reference])
+  @@map("escrow_transactions")
+}
+
+model EscrowRelease {
+  id              String        @id @default(cuid())
+  
+  escrowAccountId String
+  escrowAccount   EscrowAccount @relation(fields: [escrowAccountId], references: [id], onDelete: Cascade)
+  
+  type            ReleaseType
+  amount          Decimal
+  reason          String        @db.Text
+  
+  approvedBy      String?
+  approvedAt      DateTime?
+  
+  createdAt       DateTime      @default(now())
+  
+  @@index([escrowAccountId])
+  @@map("escrow_releases")
+}
+
+model EscrowDocument {
+  id              String        @id @default(cuid())
+  
+  escrowAccountId String
+  escrowAccount   EscrowAccount @relation(fields: [escrowAccountId], references: [id], onDelete: Cascade)
+  
+  type            String        // CONTRACT, AGREEMENT, RECEIPT, VERIFICATION
+  title           String
+  fileUrl         String
+  fileSize        Int
+  
+  uploadedBy      String
+  uploadedAt      DateTime      @default(now())
+  
+  @@index([escrowAccountId])
+  @@map("escrow_documents")
+}
+
+// ============================================
+// PHASE 3: DIGITAL LAND REGISTRY
+// ============================================
+
+model DigitalRegistryRecord {
+  id              String        @id @default(cuid())
+  registryNumber  String        @unique
+  
+  // Parcel identification
+  parcelId        String        @unique
+  coordinates     Json          // { lat, lng, bounds }
+  surveyData      Json?         // Survey plan data
+  
+  // Property reference
+  propertyId      String?
+  property        Property?     @relation(fields: [propertyId], references: [id])
+  
+  // Ownership
+  currentOwnerId  String
+  currentOwner    User          @relation("RegistryOwner", fields: [currentOwnerId], references: [id])
+  
+  // Verification
+  verifiedBy      String?
+  verifiedAt      DateTime?
+  verificationStatus String      @default("pending")
+  
+  // Metadata
+  state           String
+  lga             String
+  area            String
+  sizeSqm         Int?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Relations
+  ownershipHistory OwnershipHistory[]
+  verificationLedger VerificationLedger[]
+  
+  @@index([parcelId])
+  @@index([currentOwnerId])
+  @@index([state])
+  @@map("digital_registry_records")
+}
+
+model OwnershipHistory {
+  id              String        @id @default(cuid())
+  
+  registryId      String
+  registry        DigitalRegistryRecord @relation(fields: [registryId], references: [id], onDelete: Cascade)
+  
+  ownerId         String
+  owner           User          @relation("HistoryOwner", fields: [ownerId], references: [id])
+  
+  type            String        // PURCHASE, TRANSFER, INHERITANCE, ALLOCATION
+  transferDate    DateTime
+  documentUrl     String?
+  
+  createdAt       DateTime      @default(now())
+  
+  @@index([registryId])
+  @@index([ownerId])
+  @@index([transferDate])
+  @@map("ownership_history")
+}
+
+model VerificationLedger {
+  id              String        @id @default(cuid())
+  
+  registryId      String
+  registry        DigitalRegistryRecord @relation(fields: [registryId], references: [id], onDelete: Cascade)
+  
+  type            String        // SURVEY, LEGAL, COMPLIANCE
+  reviewedBy      String
+  status          String        // APPROVED, REJECTED, PENDING
+  notes           String?       @db.Text
+  
+  reviewedAt      DateTime      @default(now())
+  
+  @@index([registryId])
+  @@index([type])
+  @@map("verification_ledger")
+}
+
+// ============================================
+// PHASE 3: MORTGAGE INFRASTRUCTURE
+// ============================================
+
+enum MortgageStatus {
+  APPLICATION
+  REVIEW
+  VERIFICATION
+  APPROVAL
+  FUNDING
+  ACTIVE
+  PAID_OFF
+  DEFAULTED
+  CANCELLED
+}
+
+model MortgageApplication {
+  id              String        @id @default(cuid())
+  applicationNumber String      @unique
+  
+  applicantId     String
+  applicant       User          @relation(fields: [applicantId], references: [id])
+  
+  propertyId      String?
+  property        Property?     @relation(fields: [propertyId], references: [id])
+  
+  // Loan details
+  loanAmount      Decimal
+  downPayment     Decimal
+  interestRate    Decimal       // Annual percentage rate
+  termMonths      Int
+  
+  // Applicant details
+  income          Decimal
+  debtRatio       Decimal
+  creditScore     Int?
+  
+  status          MortgageStatus @default(APPLICATION)
+  
+  submittedAt     DateTime      @default(now())
+  reviewedAt      DateTime?
+  approvedAt      DateTime?
+  fundedAt        DateTime?
+  
+  // Relations
+  mortgage        Mortgage?
+  documents       MortgageDocument[]
+  
+  @@index([applicantId])
+  @@index([propertyId])
+  @@index([status])
+  @@map("mortgage_applications")
+}
+
+model Mortgage {
+  id              String        @id @default(cuid())
+  mortgageNumber  String        @unique
+  
+  applicationId   String        @unique
+  application     MortgageApplication @relation(fields: [applicationId], references: [id])
+  
+  // Loan details
+  principalAmount Decimal
+  outstandingBalance Decimal
+  interestRate    Decimal
+  termMonths      Int
+  
+  // Repayment
+  monthlyPayment  Decimal
+  nextPaymentDue  DateTime
+  
+  status          MortgageStatus @default(FUNDING)
+  
+  startDate       DateTime
+  endDate         DateTime
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Relations
+  repayments      MortgageRepayment[]
+  
+  @@index([applicationId])
+  @@index([status])
+  @@map("mortgages")
+}
+
+model MortgageDocument {
+  id              String        @id @default(cuid())
+  
+  applicationId   String
+  application     MortgageApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  
+  type            String        // INCOME_PROOF, ID, PROPERTY_DOCUMENT, BANK_STATEMENT
+  title           String
+  fileUrl         String
+  fileSize        Int
+  
+  uploadedAt      DateTime      @default(now())
+  
+  @@index([applicationId])
+  @@map("mortgage_documents")
+}
+
+model MortgageRepayment {
+  id              String        @id @default(cuid())
+  
+  mortgageId      String
+  mortgage        Mortgage      @relation(fields: [mortgageId], references: [id], onDelete: Cascade)
+  
+  amount          Decimal
+  principal       Decimal
+  interest        Decimal
+  balance         Decimal
+  
+  dueDate         DateTime
+  paidDate        DateTime?
+  status          String        @default("pending")
+  
+  createdAt       DateTime      @default(now())
+  
+  @@index([mortgageId])
+  @@index([dueDate])
+  @@map("mortgage_repayments")
+}
+
+// ============================================
+// PHASE 3: LENDING PLATFORM
+// ============================================
+
+enum LoanStatus {
+  APPLICATION
+  ASSESSMENT
+  APPROVAL
+  FUNDING
+  ACTIVE
+  MONITORING
+  CLOSURE
+  DEFAULTED
+  CANCELLED
+}
+
+model LoanProduct {
+  id              String        @id @default(cuid())
+  name            String
+  type            String        // CONSTRUCTION, DEVELOPER, LAND_ACQUISITION, INFRASTRUCTURE
+  
+  // Loan terms
+  minAmount       Decimal
+  maxAmount       Decimal
+  interestRate    Decimal
+  termMonths      Int
+  
+  // Requirements
+  minCreditScore  Int?
+  maxDebtRatio    Decimal
+  
+  isActive        Boolean       @default(true)
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Relations
+  applications    LoanApplication[]
+  
+  @@map("loan_products")
+}
+
+model LoanApplication {
+  id              String        @id @default(cuid())
+  applicationNumber String      @unique
+  
+  productId       String
+  product         LoanProduct  @relation(fields: [productId], references: [id])
+  
+  applicantId     String
+  applicant       User          @relation(fields: [applicantId], references: [id])
+  
+  // Loan details
+  requestedAmount Decimal
+  purpose         String        @db.Text
+  
+  // Project details
+  projectId       String?
+  project         ConstructionProject? @relation(fields: [projectId], references: [id])
+  
+  status          LoanStatus    @default(APPLICATION)
+  
+  submittedAt     DateTime      @default(now())
+  reviewedAt      DateTime?
+  approvedAt      DateTime?
+  fundedAt        DateTime?
+  
+  // Relations
+  loan            Loan?
+  
+  @@index([productId])
+  @@index([applicantId])
+  @@index([status])
+  @@map("loan_applications")
+}
+
+model Loan {
+  id              String        @id @default(cuid())
+  loanNumber      String        @unique
+  
+  applicationId   String        @unique
+  application     LoanApplication @relation(fields: [applicationId], references: [id])
+  
+  // Loan details
+  principalAmount Decimal
+  outstandingBalance Decimal
+  interestRate    Decimal
+  termMonths      Int
+  
+  // Monitoring
+  utilizationRate Decimal
+  repaymentStatus String
+  
+  status          LoanStatus    @default(FUNDING)
+  
+  startDate       DateTime
+  endDate         DateTime
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Relations
+  repayments      LoanRepayment[]
+  
+  @@index([applicationId])
+  @@index([status])
+  @@map("loans")
+}
+
+model LoanRepayment {
+  id              String        @id @default(cuid())
+  
+  loanId          String
+  loan            Loan          @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  
+  amount          Decimal
+  principal       Decimal
+  interest        Decimal
+  balance         Decimal
+  
+  dueDate         DateTime
+  paidDate        DateTime?
+  status          String        @default("pending")
+  
+  createdAt       DateTime      @default(now())
+  
+  @@index([loanId])
+  @@index([dueDate])
+  @@map("loan_repayments")
+}
+
+// ============================================
+// PHASE 3: INSTITUTIONAL INVESTOR PLATFORM
+// ============================================
+
+enum InvestorType {
+  INDIVIDUAL
+  PRIVATE_INVESTOR
+  INVESTMENT_FIRM
+  FAMILY_OFFICE
+  INSTITUTION
+}
+
+model InstitutionalInvestor {
+  id              String        @id @default(cuid())
+  investorNumber  String        @unique
+  
+  userId          String        @unique
+  user            User          @relation(fields: [userId], references: [id])
+  
+  type            InvestorType
+  
+  // Company details (for firms/institutions)
+  companyName     String?
+  registrationNumber String?
+  taxId           String?
+  
+  // Contact
+  address         String?
+  city            String?
+  state           String?
+  country         String        @default("Nigeria")
+  
+  // Investment capacity
+  investmentCapacity Decimal?
+  riskTolerance   String        // LOW, MEDIUM, HIGH
+  
+  // Verification
+  kycVerified     Boolean       @default(false)
+  kycVerifiedAt   DateTime?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Relations
+  portfolioAllocations PortfolioAllocation[]
+  reports         InvestorReport[]
+  
+  @@index([userId])
+  @@index([type])
+  @@map("institutional_investors")
+}
+
+model PortfolioAllocation {
+  id              String        @id @default(cuid())
+  
+  investorId      String
+  investor        InstitutionalInvestor @relation(fields: [investorId], references: [id], onDelete: Cascade)
+  
+  assetType       String        // PROPERTY, INVESTMENT_POOL, CONSTRUCTION
+  assetId         String
+  assetName       String
+  
+  allocation      Decimal       // Percentage or amount
+  currentValue    Decimal
+  riskLevel       String
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@index([investorId])
+  @@index([assetType])
+  @@map("portfolio_allocations")
+}
+
+model InvestorReport {
+  id              String        @id @default(cuid())
+  
+  investorId      String
+  investor        InstitutionalInvestor @relation(fields: [investorId], references: [id], onDelete: Cascade)
+  
+  type            String        // MONTHLY, QUARTERLY, ANNUAL
+  period          String        // e.g., "2024-Q1"
+  
+  // Performance metrics
+  totalValue      Decimal
+  totalReturn     Decimal
+  roi             Decimal
+  riskExposure    Decimal
+  
+  fileUrl         String
+  fileSize        Int
+  
+  generatedAt     DateTime      @default(now())
+  
+  @@index([investorId])
+  @@index([period])
+  @@map("investor_reports")
+}
+
+// ============================================
+// PHASE 3: ADVANCED AI PROPERTY INTELLIGENCE
+// ============================================
+
+model ValuationReport {
+  id              String        @id @default(cuid())
+  
+  propertyId      String
+  property        Property     @relation(fields: [propertyId], references: [id])
+  
+  // Valuation details
+  landValue       Decimal
+  propertyValue   Decimal
+  rentalValue     Decimal?
+  
+  // Factors
+  locationScore   Decimal
+  comparableScore Decimal
+  trendScore      Decimal
+  infrastructureScore Decimal
+  
+  // AI confidence
+  confidenceScore Decimal
+  
+  generatedAt     DateTime      @default(now())
+  
+  @@index([propertyId])
+  @@map("valuation_reports")
+}
+
+model MarketForecast {
+  id              String        @id @default(cuid())
+  
+  area            String        // State, LGA, or specific area
+  type            String        // DEMAND, GROWTH, PRICE, INFRASTRUCTURE
+  
+  forecastPeriod  String        // e.g., "2024-2029"
+  
+  // Predictions
+  currentValue    Decimal
+  predictedValue  Decimal
+  growthRate      Decimal
+  confidenceLevel Decimal
+  
+  factors         Json          // Array of influencing factors
+  
+  generatedAt     DateTime      @default(now())
+  
+  @@index([area])
+  @@index([type])
+  @@map("market_forecasts")
+}
+
+// ============================================
+// PHASE 3: ADVANCED COMPLIANCE PLATFORM
+// ============================================
+
+model KYCProfile {
+  id              String        @id @default(cuid())
+  
+  userId          String        @unique
+  user            User          @relation(fields: [userId], references: [id])
+  
+  type            String        // INDIVIDUAL, CORPORATE
+  
+  // Verification status
+  status          String        @default("pending")
+  verifiedAt      DateTime?
+  expiresAt       DateTime?
+  
+  // Documents
+  documentUrl     String?
+  documentType    String?
+  
+  // Review history
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  notes           String?       @db.Text
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@map("kyc_profiles")
+}
+
+model AMLAlert {
+  id              String        @id @default(cuid())
+  
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  
+  type            String        // HIGH_VALUE, PATTERN, SUSPICIOUS
+  severity        String        // LOW, MEDIUM, HIGH, CRITICAL
+  
+  description     String        @db.Text
+  transactionId   String?
+  
+  status          String        @default("open")
+  resolvedAt      DateTime?
+  resolution      String?       @db.Text
+  
+  createdAt       DateTime      @default(now())
+  
+  @@index([userId])
+  @@index([status])
+  @@map("aml_alerts")
+}
+
+// ============================================
+// PHASE 3: FINANCIAL REPORTING ENGINE
+// ============================================
+
+model FinancialReport {
+  id              String        @id @default(cuid())
+  reportNumber    String        @unique
+  
+  type            String        // REVENUE, ESCROW, INVESTMENT, PORTFOLIO, COMPLIANCE
+  period          String
+  
+  // Metrics
+  totalRevenue    Decimal?
+  totalVolume     Decimal?
+  successRate     Decimal?
+  
+  fileUrl         String
+  fileSize        Int
+  
+  generatedBy     String
+  generatedAt     DateTime      @default(now())
+  
+  @@index([type])
+  @@index([period])
+  @@map("financial_reports")
+}
+
+// ============================================
+// PHASE 3: DIGITAL ASSET INFRASTRUCTURE
+// ============================================
+
+model AssetToken {
+  id              String        @id @default(cuid())
+  tokenNumber     String        @unique
+  
+  // Asset reference
+  propertyId      String?
+  property        Property?     @relation(fields: [propertyId], references: [id])
+  
+  investmentUnitId String?
+  investmentUnit  InvestmentUnit? @relation(fields: [investmentUnitId], references: [id])
+  
+  // Token details
+  totalSupply     Int
+  circulatingSupply Int
+  
+  tokenValue      Decimal
+  
+  status          String        @default("pending")
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@index([propertyId])
+  @@index([investmentUnitId])
+  @@map("asset_tokens")
+}
+
+// ============================================
+// PHASE 3: AUDIT EVENTS
+// ============================================
+
+model AuditEvent {
+  id              String        @id @default(cuid())
+  
+  eventType       String
+  entityType      String
+  entityId        String
+  
+  userId          String?
+  userRole        String?
+  
+  ipAddress       String?
+  userAgent       String?
+  
+  changes         Json?         // Before/after values
+  metadata        Json?
+  
+  createdAt       DateTime      @default(now())
+  
+  @@index([eventType])
+  @@index([entityType])
+  @@index([userId])
+  @@map("audit_events")
+}
+
+// ============================================
+// PHASE 3: ADD USER RELATIONS
+// ============================================
+
+// Add to User model relations:
+// escrowAccountsBuyer: EscrowAccount[] @relation("EscrowBuyer")
+// escrowAccountsSeller: EscrowAccount[] @relation("EscrowSeller")
+// escrowTransactions: EscrowTransaction[]
+// registryRecords: DigitalRegistryRecord[] @relation("RegistryOwner")
+// ownershipHistory: OwnershipHistory[] @relation("HistoryOwner")
+// mortgageApplications: MortgageApplication[]
+// loanApplications: LoanApplication[]
+// institutionalInvestor: InstitutionalInvestor?
+// kycProfile: KYCProfile?
+// amlAlerts: AMLAlert[]
+
+// Add to Property model relations:
+// escrowAccounts: EscrowAccount[]
+// mortgageApplications: MortgageApplication[]
+// valuationReports: ValuationReport[]
+// assetTokens: AssetToken[]
+
+// Add to Investment model relations:
+// escrowAccounts: EscrowAccount[]
+
+// Add to ConstructionProject model relations:
+// loanApplications: LoanApplication[]
+
+// ============================================
+// NOTIFICATIONS
+// ============================================
+
+enum NotificationType {
+  PAYMENT_UPDATE
+  VERIFICATION_UPDATE
+  PROJECT_UPDATE
+  INVESTMENT_UPDATE
+  TICKET_UPDATE
+  SYSTEM_ALERT
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  SMS
+}
+
+model Notification {
+  id              String              @id @default(cuid())
+  userId          String
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type            NotificationType
+  title           String
+  message         String              @db.Text
+  data            Json?               // Additional data
+  
+  isRead          Boolean             @default(false)
+  readAt          DateTime?
+  
+  channels        NotificationChannel[]
+  
+  createdAt       DateTime            @default(now())
+  
+  @@index([userId])
+  @@index([isRead])
+  @@index([type])
+  @@map("notifications")
+}
+
+model NotificationPreferences {
+  id              String              @id @default(cuid())
+  userId          String              @unique
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  emailEnabled    Boolean             @default(true)
+  inAppEnabled    Boolean             @default(true)
+  smsEnabled      Boolean             @default(false)
+  
+  paymentUpdates  Boolean             @default(true)
+  verificationUpdates Boolean         @default(true)
+  projectUpdates  Boolean             @default(true)
+  investmentUpdates Boolean           @default(true)
+  ticketUpdates   Boolean             @default(true)
+  
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  @@map("notification_preferences")
+}
+
+// ============================================
+// AUDIT & LOGGING
+// ============================================
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  
+  action      String
+  resource    String
+  resourceId  String?
+  
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model SessionLog {
+  id          String   @id @default(cuid())
+  userId      String
+  
+  ipAddress   String?
+  userAgent   String?
+  
+  loginAt     DateTime @default(now())
+  logoutAt    DateTime?
+  
+  @@index([userId])
+  @@index([loginAt])
+  @@map("session_logs")
+}
