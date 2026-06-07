@@ -230,6 +230,81 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Client Dashboard Section */}
+      <section className="py-20 bg-vor-cream">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <SectionHeading
+                eyebrow="Client Portal"
+                title="Manage your property portfolio"
+                description="Access your personalized dashboard to track your investments, view payment history, manage documents, and get support."
+                className="mb-6"
+              />
+              <ul className="space-y-4 mb-8">
+                {[
+                  "Track your property portfolio in real-time",
+                  "View payment history and upcoming payments",
+                  "Access all your documents in one secure place",
+                  "Get dedicated support for your inquiries",
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-3">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-vor-gold text-vor-navy mt-0.5 shrink-0">
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <span className="text-sm text-vor-navy">{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <Button href="/dashboard/client" variant="primary" size="lg">
+                Access Client Dashboard
+              </Button>
+            </div>
+            <div className="bg-white rounded-2xl border border-vor-border shadow-elevated p-8">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between pb-4 border-b border-vor-border">
+                  <span className="text-sm font-medium text-vor-slate">Portfolio Value</span>
+                  <span className="text-2xl font-bold text-vor-navy">₦45,000,000</span>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-vor-cream rounded-lg p-4">
+                    <p className="text-xs text-vor-slate mb-1">Properties</p>
+                    <p className="text-xl font-bold text-vor-navy">3</p>
+                  </div>
+                  <div className="bg-vor-cream rounded-lg p-4">
+                    <p className="text-xs text-vor-slate mb-1">Payments</p>
+                    <p className="text-xl font-bold text-vor-navy">12</p>
+                  </div>
+                  <div className="bg-vor-cream rounded-lg p-4">
+                    <p className="text-xs text-vor-slate mb-1">Documents</p>
+                    <p className="text-xl font-bold text-vor-navy">8</p>
+                  </div>
+                  <div className="bg-vor-cream rounded-lg p-4">
+                    <p className="text-xs text-vor-slate mb-1">Support Tickets</p>
+                    <p className="text-xl font-bold text-vor-navy">2</p>
+                  </div>
+                </div>
+                <div className="pt-4 border-t border-vor-border">
+                  <p className="text-xs text-vor-slate mb-2">Recent Activity</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="h-2 w-2 rounded-full bg-vor-trust" />
+                      <span className="text-vor-navy">Payment received - VOR-LAG-001</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="h-2 w-2 rounded-full bg-vor-gold" />
+                      <span className="text-vor-navy">Document uploaded - Deed of Assignment</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Testimonials */}
       <section className="py-20 bg-vor-navy text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -42,7 +42,7 @@ export const HOME_NAV = [
   { label: "Homes Marketplace", href: "/home-construct" },
   { label: "Construction Services", href: "/home-construct/services" },
   { label: "Ongoing Projects", href: "/home-construct/projects" },
-  { label: "Client Dashboard", href: "/home-construct/dashboard" },
+  { label: "Client Dashboard", href: "/dashboard/client" },
 ];
 
 export const FINANCE_NAV = [

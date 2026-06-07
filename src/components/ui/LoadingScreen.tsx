@@ -11,7 +11,10 @@ export function LoadingScreen({ show }: LoadingScreenProps) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    if (!show) return;
+    if (!show) {
+      setProgress(0);
+      return;
+    }
 
     const interval = setInterval(() => {
       setProgress((prev) => {

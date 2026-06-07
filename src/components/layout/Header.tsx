@@ -83,6 +83,12 @@ export function Header() {
           </nav>
 
           <div className="hidden lg:flex items-center gap-3">
+            <Button href="/dashboard/client" variant="ghost" size="sm">
+              Dashboard
+            </Button>
+            <Button href="/admin/login" variant="ghost" size="sm">
+              Admin
+            </Button>
             <Button href="/corporate/contact" variant="ghost" size="sm">
               Contact
             </Button>
@@ -126,6 +132,12 @@ export function Header() {
             </Link>
           ))}
           <div className="pt-4 flex flex-col gap-2">
+            <Button href="/dashboard/client" variant="outline" size="md" className="w-full">
+              Client Dashboard
+            </Button>
+            <Button href="/admin" variant="outline" size="md" className="w-full">
+              Admin Portal
+            </Button>
             <Button href="/finance" variant="primary" size="md" className="w-full">
               Invest with VOR
             </Button>

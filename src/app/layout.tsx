@@ -21,9 +21,6 @@ export const metadata: Metadata = {
     default: "VOR — Vintage Outlook Realty | Verified Real Estate & Infrastructure",
     template: "%s | VOR — Vintage Outlook Realty",
   },
-  icons: {
-    icon: "/assets/images/GitHub_Test-Logo.png",
-  },
   description:
     "A transparent, technology-driven real estate and infrastructure ecosystem focused on verified land, trusted development, and structured investment opportunities in Nigeria.",
   keywords: [

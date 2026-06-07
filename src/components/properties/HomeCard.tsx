@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Bed, Bath, MapPin } from "lucide-react";
 import { VerificationBadge } from "@/components/ui/VerificationBadge";
 import { formatNaira } from "@/lib/utils/cn";
@@ -19,7 +20,11 @@ export function HomeCard({ home }: { home: HomeListing }) {
         </div>
       </div>
       <div className="p-5">
-        <h3 className="font-display text-lg font-semibold text-vor-navy">{home.title}</h3>
+        <h3 className="font-display text-lg font-semibold text-vor-navy">
+          <Link href={`/home-construct/${home.id}`} className="hover:text-vor-trust">
+            {home.title}
+          </Link>
+        </h3>
         <p className="mt-1 flex items-center gap-1 text-sm text-vor-slate">
           <MapPin className="h-3.5 w-3.5" aria-hidden />
           {home.lga}, {home.state}
