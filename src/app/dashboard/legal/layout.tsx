@@ -4,6 +4,8 @@
  * Layout for the legal officer dashboard with sidebar navigation
  */
 
+'use client';
+
 import { ReactNode } from 'react';
 import Link from 'next/link';
 import {

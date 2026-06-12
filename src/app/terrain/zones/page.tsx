@@ -3,7 +3,6 @@ import { DivisionSubnav } from "@/components/layout/DivisionSubnav";
 import { GradeBadge } from "@/components/ui/GradeBadge";
 import { LandMapPlaceholder } from "@/components/maps/LandMapPlaceholder";
 import { TERRAIN_NAV } from "@/lib/constants/navigation";
-import { investmentZones } from "@/lib/data/mock";
 import type { InvestmentGrade } from "@/lib/types";
 
 export const metadata = {
@@ -11,7 +10,13 @@ export const metadata = {
   description: "VOR-curated investment zones across Lagos, Abuja, and Ogun with grade ratings and ROI benchmarks.",
 };
 
-export default function InvestmentZonesPage() {
+export default async function InvestmentZonesPage() {
+  // Mock investment zones data
+  const investmentZones = [
+    { name: 'Ikeja, Lagos', state: 'Lagos', grade: 'A' as any, avgRoi: 25, description: 'Investment zone in Ikeja, Lagos', propertyCount: 15 },
+    { name: 'Maitama, Abuja', state: 'Abuja', grade: 'A' as any, avgRoi: 30, description: 'Investment zone in Maitama, Abuja', propertyCount: 10 },
+  ];
+
   return (
     <>
       <PageHero

@@ -4,9 +4,38 @@
  * Loans management page for admin to oversee all loan operations
  */
 
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Landmark, Plus, Search, MoreVertical, DollarSign, Users, Calendar, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 
 export default function AdminLoansPage() {
+  const [loans, setLoans] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadLoans();
+  }, []);
+
+  const loadLoans = async () => {
+    try {
+      // Mock data for loans
+      const mockLoans = [
+        { id: 'LN001', borrower: 'John Doe', amount: 5000000, remaining_amount: 3500000, status: 'active', created_at: new Date().toISOString() },
+        { id: 'LN002', borrower: 'Jane Smith', amount: 10000000, remaining_amount: 8000000, status: 'pending', created_at: new Date().toISOString() },
+      ];
+      setLoans(mockLoans);
+    } catch (error) {
+      console.error('Error loading loans:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const outstanding = loans.reduce((sum, l) => sum + (l.remaining_amount || 0), 0);
+  const pendingCount = loans.filter(l => l.status === 'pending').length;
+  const defaultCount = loans.filter(l => l.status === 'default').length;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -22,10 +51,10 @@ export default function AdminLoansPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard title="Active Loans" value="23" icon={Landmark} color="bg-vor-trust/10 text-vor-trust" />
-        <StatCard title="Outstanding" value="₦125M" icon={DollarSign} color="bg-vor-navy/10 text-vor-navy" />
-        <StatCard title="Pending Approval" value="8" icon={Clock} color="bg-vor-gold/10 text-vor-gold" />
-        <StatCard title="Default Risk" value="3" icon={AlertTriangle} color="bg-red-100 text-red-700" />
+        <StatCard title="Active Loans" value={loans.filter(l => l.status === 'active').length.toString()} icon={Landmark} color="bg-vor-trust/10 text-vor-trust" />
+        <StatCard title="Outstanding" value={`₦${(outstanding / 1000000).toFixed(0)}M`} icon={DollarSign} color="bg-vor-navy/10 text-vor-navy" />
+        <StatCard title="Pending Approval" value={pendingCount.toString()} icon={Clock} color="bg-vor-gold/10 text-vor-gold" />
+        <StatCard title="Default Risk" value={defaultCount.toString()} icon={AlertTriangle} color="bg-red-100 text-red-700" />
       </div>
 
       {/* Loans Table */}
@@ -50,46 +79,25 @@ export default function AdminLoansPage() {
           </div>
         </div>
         <div className="space-y-4">
-          <LoanRow
-            id="LOAN-001"
-            borrower="John Doe"
-            property="VOR-LAG-001"
-            amount="₦5,000,000"
-            remaining="₦3,250,000"
-            interestRate={12}
-            status="active"
-            nextPayment="June 15, 2026"
-          />
-          <LoanRow
-            id="LOAN-002"
-            borrower="Jane Smith"
-            property="VOR-ABJ-002"
-            amount="₦8,000,000"
-            remaining="₦6,400,000"
-            interestRate={10}
-            status="active"
-            nextPayment="June 20, 2026"
-          />
-          <LoanRow
-            id="LOAN-003"
-            borrower="BuildRight Construction"
-            property="VOR-LAG-003"
-            amount="₦15,000,000"
-            remaining="₦15,000,000"
-            interestRate={15}
-            status="pending"
-            nextPayment="N/A"
-          />
-          <LoanRow
-            id="LOAN-004"
-            borrower="Michael Johnson"
-            property="VOR-ABJ-003"
-            amount="₦3,000,000"
-            remaining="₦2,100,000"
-            interestRate={14}
-            status="default"
-            nextPayment="Overdue"
-          />
+          {loading ? (
+            <p className="text-vor-slate">Loading loans...</p>
+          ) : loans.length === 0 ? (
+            <p className="text-vor-slate">No loans found</p>
+          ) : (
+            loans.map((loan) => (
+              <LoanRow
+                key={loan.id}
+                id={loan.id}
+                borrower={loan.borrower_name || 'Unknown'}
+                property={loan.property_id || 'N/A'}
+                amount={`₦${(loan.amount || 0).toLocaleString()}`}
+                remaining={`₦${(loan.remaining_amount || 0).toLocaleString()}`}
+                interestRate={loan.interest_rate || 0}
+                status={loan.status || 'pending'}
+                nextPayment={loan.next_payment_date ? new Date(loan.next_payment_date).toLocaleDateString() : 'N/A'}
+              />
+            ))
+          )}
         </div>
       </div>
     </div>

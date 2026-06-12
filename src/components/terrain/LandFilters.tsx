@@ -1,12 +1,41 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback } from "react";
-import { STATES, LGAS, TITLE_TYPES, INVESTMENT_GRADES } from "@/lib/data/mock";
+import { useCallback, useEffect, useState } from "react";
 
 export function LandFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [states, setStates] = useState<string[]>([]);
+  const [lgas, setLgas] = useState<Record<string, string[]>>({});
+  const [titleTypes, setTitleTypes] = useState<string[]>([]);
+  const [investmentGrades, setInvestmentGrades] = useState<string[]>([]);
+
+  useEffect(() => {
+    loadFilterOptions();
+  }, []);
+
+  const loadFilterOptions = async () => {
+    try {
+      // Mock filter options
+      const mockStates = ['Lagos', 'Abuja', 'Rivers', 'Oyo'];
+      const mockLgas: Record<string, string[]> = {
+        'Lagos': ['Ikeja', 'Lekki', 'Victoria Island'],
+        'Abuja': ['Gwarinpa', 'Wuse', 'Maitama'],
+        'Rivers': ['Port Harcourt', 'Obio-Akpor'],
+        'Oyo': ['Ibadan North', 'Ibadan South'],
+      };
+      const mockTitleTypes = ['C of O', 'Gazette', 'Deed of Assignment'];
+      const mockGrades = ['A', 'B', 'C'];
+
+      setStates(mockStates);
+      setLgas(mockLgas);
+      setTitleTypes(mockTitleTypes);
+      setInvestmentGrades(mockGrades);
+    } catch (error) {
+      console.error('Error loading filter options:', error);
+    }
+  };
 
   const update = useCallback(
     (key: string, value: string) => {
@@ -19,7 +48,7 @@ export function LandFilters() {
   );
 
   const state = searchParams.get("state") ?? "";
-  const lgas = state ? LGAS[state] ?? [] : [];
+  const currentLgas = state ? lgas[state] ?? [] : [];
 
   return (
     <aside className="bg-white rounded-xl border border-vor-border p-6 shadow-card h-fit">
@@ -39,7 +68,7 @@ export function LandFilters() {
             className="w-full rounded-md border border-vor-border px-3 py-2 text-sm focus:outline focus:outline-2 focus:outline-vor-gold"
           >
             <option value="">All states</option>
-            {STATES.map((s) => (
+            {states.map((s) => (
               <option key={s} value={s}>
                 {s}
               </option>
@@ -59,7 +88,7 @@ export function LandFilters() {
             className="w-full rounded-md border border-vor-border px-3 py-2 text-sm disabled:opacity-50 focus:outline focus:outline-2 focus:outline-vor-gold"
           >
             <option value="">All LGAs</option>
-            {lgas.map((l) => (
+            {currentLgas.map((l) => (
               <option key={l} value={l}>
                 {l}
               </option>
@@ -78,7 +107,7 @@ export function LandFilters() {
             className="w-full rounded-md border border-vor-border px-3 py-2 text-sm focus:outline focus:outline-2 focus:outline-vor-gold"
           >
             <option value="">All title types</option>
-            {TITLE_TYPES.map((t) => (
+            {titleTypes.map((t) => (
               <option key={t} value={t}>
                 {t}
               </option>
@@ -97,7 +126,7 @@ export function LandFilters() {
             className="w-full rounded-md border border-vor-border px-3 py-2 text-sm focus:outline focus:outline-2 focus:outline-vor-gold"
           >
             <option value="">All grades</option>
-            {INVESTMENT_GRADES.map((g) => (
+            {investmentGrades.map((g) => (
               <option key={g} value={g}>
                 Grade {g}
               </option>

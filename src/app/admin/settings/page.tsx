@@ -4,9 +4,50 @@
  * System settings page for admin configuration
  */
 
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Settings, Shield, Bell, Database, Globe, Users, Save } from 'lucide-react';
 
 export default function AdminSettingsPage() {
+  const [settings, setSettings] = useState<any>({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      // Mock data for settings
+      const mockSettings = {
+        siteName: 'VOR Platform',
+        maintenanceMode: false,
+        notificationsEnabled: true,
+      };
+      setSettings(mockSettings);
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      // Mock save operation
+      console.log('Settings saved:', settings);
+      alert('Settings saved successfully');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert('Failed to save settings');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -121,9 +162,13 @@ export default function AdminSettingsPage() {
 
           {/* Save Button */}
           <div className="flex justify-end">
-            <button className="flex items-center gap-2 px-6 py-3 bg-vor-navy text-white rounded-lg hover:bg-vor-navy-light">
+            <button 
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-2 px-6 py-3 bg-vor-navy text-white rounded-lg hover:bg-vor-navy-light disabled:opacity-50"
+            >
               <Save className="h-4 w-4" />
-              Save Settings
+              {saving ? 'Saving...' : 'Save Settings'}
             </button>
           </div>
         </div>

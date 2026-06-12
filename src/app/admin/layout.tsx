@@ -26,7 +26,8 @@ import {
   Bell,
   User,
   Lock,
-  AlertTriangle
+  AlertTriangle,
+  Fingerprint
 } from 'lucide-react';
 
 const adminNavItems = [
@@ -35,6 +36,12 @@ const adminNavItems = [
     label: 'Dashboard',
     href: '/admin',
     icon: LayoutDashboard,
+    phase: 'Phase 1',
+  },
+  {
+    label: 'Notifications',
+    href: '/admin/notifications',
+    icon: Bell,
     phase: 'Phase 1',
   },
   {
@@ -47,6 +54,12 @@ const adminNavItems = [
     label: 'Properties',
     href: '/admin/properties',
     icon: Map,
+    phase: 'Phase 1',
+  },
+  {
+    label: 'Inspections',
+    href: '/admin/inspections',
+    icon: Fingerprint,
     phase: 'Phase 1',
   },
   {
@@ -355,10 +368,13 @@ export default function AdminLayout({
               <p className="text-sm text-gray-400">Classified System Control</p>
             </div>
             <div className="flex items-center gap-4">
-              <button className="relative rounded-lg p-2 text-gray-400 hover:bg-gray-800 hover:text-white">
+              <Link
+                href="/admin/notifications"
+                className="relative rounded-lg p-2 text-gray-400 hover:bg-gray-800 hover:text-white"
+              >
                 <Bell className="h-5 w-5" />
                 <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-              </button>
+              </Link>
               <Link
                 href="/"
                 className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white"

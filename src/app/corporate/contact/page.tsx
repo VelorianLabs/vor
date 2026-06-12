@@ -222,7 +222,7 @@ export default function ContactPage() {
               </Button>
 
               <p className="text-xs text-vor-slate text-center">
-                By submitting this form, you agree to our privacy policy. We'll only use your information to respond to your enquiry.
+                By submitting this form, you agree to our privacy policy. We&apos;ll only use your information to respond to your enquiry.
               </p>
             </form>
           </div>

@@ -4,9 +4,34 @@
  * Investments management page for admin to oversee all investment pools
  */
 
+'use client';
+
+import { useState, useEffect } from 'react';
 import { TrendingUp, Plus, Search, MoreVertical, DollarSign, Users, Calendar, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 
 export default function AdminInvestmentsPage() {
+  const [pools, setPools] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadInvestmentPools();
+  }, []);
+
+  const loadInvestmentPools = async () => {
+    try {
+      const response = await fetch('/api/investment-pools');
+      const data = await response.json();
+      setPools(data || []);
+    } catch (error) {
+      console.error('Error loading investment pools:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const totalRaised = pools.reduce((sum, p) => sum + (p.raised_amount || 0), 0);
+  const openPools = pools.filter(p => p.status === 'open').length;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -22,10 +47,10 @@ export default function AdminInvestmentsPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard title="Total Pools" value="6" icon={TrendingUp} color="bg-vor-trust/10 text-vor-trust" />
-        <StatCard title="Total Raised" value="₦125.8M" icon={DollarSign} color="bg-vor-trust/10 text-vor-trust" />
-        <StatCard title="Active Investors" value="234" icon={Users} color="bg-vor-navy/10 text-vor-navy" />
-        <StatCard title="Open for Investment" value="2" icon={CheckCircle} color="bg-vor-gold/10 text-vor-gold" />
+        <StatCard title="Total Pools" value={pools.length.toString()} icon={TrendingUp} color="bg-vor-trust/10 text-vor-trust" />
+        <StatCard title="Total Raised" value={`₦${(totalRaised / 1000000).toFixed(1)}M`} icon={DollarSign} color="bg-vor-trust/10 text-vor-trust" />
+        <StatCard title="Active Investors" value={pools.reduce((sum, p) => sum + (p.investor_count || 0), 0).toString()} icon={Users} color="bg-vor-navy/10 text-vor-navy" />
+        <StatCard title="Open for Investment" value={openPools.toString()} icon={CheckCircle} color="bg-vor-gold/10 text-vor-gold" />
       </div>
 
       {/* Investment Pools */}
@@ -42,50 +67,26 @@ export default function AdminInvestmentsPage() {
           </div>
         </div>
         <div className="space-y-4">
-          <InvestmentPoolRow
-            id="POOL-001"
-            name="Lekki Peninsula Development Pool"
-            location="Lekki, Lagos"
-            targetAmount="₦100,000,000"
-            raisedAmount="₦75,000,000"
-            roi={18}
-            investors={45}
-            status="open"
-            closingDate="July 30, 2026"
-          />
-          <InvestmentPoolRow
-            id="POOL-002"
-            name="Abuja Prime Estate Fund"
-            location="Katampe, Abuja"
-            targetAmount="₦150,000,000"
-            raisedAmount="₦45,000,000"
-            roi={22}
-            investors={32}
-            status="open"
-            closingDate="August 15, 2026"
-          />
-          <InvestmentPoolRow
-            id="POOL-003"
-            name="Victoria Island Mixed Development"
-            location="Victoria Island, Lagos"
-            targetAmount="₦200,000,000"
-            raisedAmount="₦185,000,000"
-            roi={15}
-            investors={67}
-            status="closing"
-            closingDate="June 20, 2026"
-          />
-          <InvestmentPoolRow
-            id="POOL-004"
-            name="Port Harcourt Garden City"
-            location="Port Harcourt, Rivers"
-            targetAmount="₦80,000,000"
-            raisedAmount="₦80,000,000"
-            roi={20}
-            investors={90}
-            status="fully_funded"
-            closingDate="May 15, 2026"
-          />
+          {loading ? (
+            <p className="text-vor-slate">Loading investment pools...</p>
+          ) : pools.length === 0 ? (
+            <p className="text-vor-slate">No investment pools found</p>
+          ) : (
+            pools.map((pool) => (
+              <InvestmentPoolRow
+                key={pool.id}
+                id={pool.id}
+                name={pool.name}
+                location={pool.state}
+                targetAmount={`₦${(pool.target_amount || 0).toLocaleString()}`}
+                raisedAmount={`₦${(pool.raised_amount || 0).toLocaleString()}`}
+                roi={pool.roi || 0}
+                investors={pool.investor_count || 0}
+                status={pool.status || 'open'}
+                closingDate={pool.closing_date ? new Date(pool.closing_date).toLocaleDateString() : 'N/A'}
+              />
+            ))
+          )}
         </div>
       </div>
     </div>

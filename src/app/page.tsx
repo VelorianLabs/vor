@@ -9,16 +9,32 @@ import { LandMapPlaceholder } from "@/components/maps/LandMapPlaceholder";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { CTABanner } from "@/components/ui/CTABanner";
 import { Button } from "@/components/ui/Button";
-import {
-  landProperties,
-  constructionProjects,
-  testimonials,
-  investmentPools,
-} from "@/lib/data/mock";
 import { formatNaira } from "@/lib/utils/cn";
 
-export default function HomePage() {
-  const featured = landProperties.filter((p) => p.featured).slice(0, 3);
+export default async function HomePage() {
+  // Fetch data from API routes
+  const [propertiesRes, projectsRes, testimonialsRes, poolsRes] = await Promise.all([
+    fetch('http://localhost:3000/api/properties'),
+    fetch('http://localhost:3000/api/construction-projects'),
+    fetch('http://localhost:3000/api/testimonials'),
+    fetch('http://localhost:3000/api/investment-pools'),
+  ]);
+
+  const properties = await propertiesRes.json();
+  const projects = await projectsRes.json();
+  const testimonials = await testimonialsRes.json();
+  const pools = await poolsRes.json();
+
+  // Handle cases where API might return non-array responses
+  const propertiesArray = Array.isArray(properties) ? properties : [];
+  const projectsArray = Array.isArray(projects) ? projects : [];
+  const testimonialsArray = Array.isArray(testimonials) ? testimonials : [];
+  const poolsArray = Array.isArray(pools) ? pools : [];
+
+  const featured = propertiesArray.filter((p: any) => p.featured).slice(0, 3);
+  const projectList = projectsArray.slice(0, 3);
+  const testimonialList = testimonialsArray.slice(0, 3);
+  const poolList = poolsArray.filter((p: any) => p.status === 'open').slice(0, 3);
 
   return (
     <>
@@ -38,7 +54,7 @@ export default function HomePage() {
             </Button>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
-            {featured.map((property) => (
+            {featured.map((property: any) => (
               <PropertyCard key={property.id} property={property} />
             ))}
           </div>
@@ -68,7 +84,7 @@ export default function HomePage() {
             className="mb-10"
           />
           <div className="grid md:grid-cols-2 gap-6">
-            {constructionProjects.slice(0, 2).map((project) => (
+            {projects.slice(0, 2).map((project: any) => (
               <Link
                 key={project.id}
                 href="/home-construct/projects"
@@ -144,7 +160,7 @@ export default function HomePage() {
             className="mb-10"
           />
           <div className="grid md:grid-cols-3 gap-6">
-            {investmentPools.map((pool) => (
+            {pools.map((pool: any) => (
               <div
                 key={pool.id}
                 className="bg-white rounded-xl border border-vor-border p-6 shadow-card"
@@ -197,7 +213,7 @@ export default function HomePage() {
             className="mb-10"
           />
           <div className="grid md:grid-cols-3 gap-6">
-            {constructionProjects.map((project) => (
+            {projects.map((project: any) => (
               <div
                 key={project.id}
                 className="bg-white rounded-xl border border-vor-border overflow-hidden shadow-card"
@@ -315,7 +331,7 @@ export default function HomePage() {
             className="mb-12 [&_h2]:text-white [&_p]:text-white/70"
           />
           <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map((t) => (
+            {testimonialList.map((t: any) => (
               <blockquote
                 key={t.id}
                 className="bg-white/5 rounded-xl p-6 border border-white/10"

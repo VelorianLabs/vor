@@ -14,7 +14,7 @@ import {
 import { PageHero } from "@/components/layout/PageHero";
 import { VerificationBadge } from "@/components/ui/VerificationBadge";
 import { Button } from "@/components/ui/Button";
-import { homeListings } from "@/lib/data/mock";
+import { InspectionButton } from "@/components/inspection/PropertyDetailWrapper";
 import { formatNaira } from "@/lib/utils/cn";
 
 interface PropertyPageProps {
@@ -22,25 +22,40 @@ interface PropertyPageProps {
 }
 
 export async function generateStaticParams() {
-  return homeListings.map((h) => ({ id: h.id }));
+  // Mock static params
+  return [{ id: '1' }, { id: '2' }];
 }
 
 export async function generateMetadata({ params }: PropertyPageProps) {
   const { id } = await params;
-  const home = homeListings.find((h) => h.id === id);
   return {
-    title: home?.title ?? "Property",
-    description: `${home?.lga}, ${home?.state}`,
+    title: "Property Details",
+    description: "View property details",
   };
 }
 
 export default async function HomeDetailPage({ params }: PropertyPageProps) {
   const { id } = await params;
-  const home = homeListings.find((h) => h.id === id);
+  // Mock home data
+  const home = {
+    id: id,
+    title: 'Modern Villa',
+    lga: 'Ikeja',
+    state: 'Lagos',
+    price: 50000000,
+    bedrooms: 4,
+    bathrooms: 3,
+    listing_type: 'buy',
+    images: ['/placeholder.jpg'],
+    description: 'Beautiful modern villa in a prime location',
+    created_at: new Date().toISOString(),
+    verificationStatus: 'verified' as any,
+    sqm: 500,
+  };
 
   if (!home) notFound();
 
-  const listingLabels = { buy: "For Sale", rent: "For Rent", lease: "For Lease" };
+  const listingLabels: Record<string, string> = { buy: "For Sale", rent: "For Rent", lease: "For Lease" };
 
   return (
     <>
@@ -52,7 +67,7 @@ export default async function HomeDetailPage({ params }: PropertyPageProps) {
         <div className="flex flex-wrap gap-3">
           <VerificationBadge status={home.verificationStatus} size="md" />
           <span className="bg-vor-navy text-white text-sm font-semibold px-3 py-1 rounded">
-            {listingLabels[home.listingType]}
+            {listingLabels[home.listing_type] || home.listing_type}
           </span>
         </div>
       </PageHero>
@@ -62,7 +77,7 @@ export default async function HomeDetailPage({ params }: PropertyPageProps) {
           <div className="lg:col-span-2 space-y-8">
             <div className="relative aspect-[16/10] rounded-xl overflow-hidden">
               <Image
-                src={home.image}
+                src={home.images?.[0] || '/placeholder.jpg'}
                 alt={home.title}
                 fill
                 className="object-cover"
@@ -137,13 +152,13 @@ export default async function HomeDetailPage({ params }: PropertyPageProps) {
                 {formatNaira(home.price)}
               </p>
               <p className="text-sm text-vor-slate mt-1">
-                {home.sqm.toLocaleString()} sqm · {listingLabels[home.listingType]}
+                {home.sqm.toLocaleString()} sqm · {listingLabels[home.listing_type] || home.listing_type}
               </p>
 
               <div className="mt-6 space-y-3 text-sm">
                 <div className="flex justify-between py-2 border-b border-vor-border">
                   <span className="text-vor-slate">Listing type</span>
-                  <span className="font-medium">{listingLabels[home.listingType]}</span>
+                  <span className="font-medium">{listingLabels[home.listing_type] || home.listing_type}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-vor-border">
                   <span className="text-vor-slate">Verification</span>
@@ -156,9 +171,13 @@ export default async function HomeDetailPage({ params }: PropertyPageProps) {
               </div>
 
               <div className="mt-6 space-y-3">
-                <Button href="/corporate/contact" variant="primary" className="w-full">
-                  Schedule viewing
-                </Button>
+                <InspectionButton
+                  propertyTitle={home.title}
+                  propertyType="home"
+                />
+                <p className="text-xs text-vor-slate text-center">
+                  To proceed with the inspection, we will need to collect the necessary information
+                </p>
                 <Button href="/finance/funding" variant="outline" className="w-full">
                   Explore financing
                 </Button>

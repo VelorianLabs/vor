@@ -8,7 +8,6 @@
 
 import { useEffect, useState } from 'react';
 import { Building2, CreditCard, FileText, TrendingUp, Calendar, Clock, Plus, Search, Filter } from 'lucide-react';
-import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 
@@ -46,11 +45,48 @@ interface Activity {
   type: string;
 }
 
+function InspectionItem({
+  property,
+  date,
+  status,
+}: {
+  property: string;
+  date: string;
+  status: string;
+}) {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pending': return 'bg-yellow-100 text-yellow-700';
+      case 'approved': return 'bg-blue-100 text-blue-700';
+      case 'scheduled': return 'bg-green-100 text-green-700';
+      case 'completed': return 'bg-purple-100 text-purple-700';
+      case 'rejected': return 'bg-red-100 text-red-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  return (
+    <div className="flex items-start gap-4 p-4 rounded-lg border border-vor-border hover:bg-vor-cream transition-colors">
+      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-vor-navy text-white">
+        <Calendar className="h-5 w-5" />
+      </div>
+      <div className="flex-1">
+        <p className="font-medium text-vor-navy">{property}</p>
+        <p className="text-sm text-vor-slate">{new Date(date).toLocaleDateString()}</p>
+        <span className={`inline-block mt-1 px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(status)}`}>
+          {status.charAt(0).toUpperCase() + status.slice(1)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function ClientDashboardPage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [properties, setProperties] = useState<Property[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [inspections, setInspections] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -59,21 +95,19 @@ export default function ClientDashboardPage() {
 
   const loadUserData = async () => {
     try {
-      // Get current user
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) return;
+      // Mock user data
+      const mockUser: UserProfile = {
+        id: '1',
+        full_name: 'John Doe',
+        email: 'john@example.com',
+        phone: '+2341234567890',
+        company: 'Acme Corp',
+        role: 'client',
+        created_at: new Date().toISOString(),
+      };
+      setUser(mockUser);
 
-      // Get user profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', authUser.id)
-        .single();
-
-      if (profile) setUser(profile);
-
-      // Load user's properties (will be from real database once set up)
-      // For now, showing empty state
+      // Load user's properties
       setProperties([]);
 
       // Load user's payments
@@ -81,6 +115,9 @@ export default function ClientDashboardPage() {
 
       // Load user's activities
       setActivities([]);
+
+      // Load user's inspection requests
+      setInspections([]);
     } catch (error) {
       console.error('Error loading user data:', error);
     } finally {
@@ -177,10 +214,12 @@ export default function ClientDashboardPage() {
       )}
 
       {/* Recent Activity */}
-      {activities.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl border border-vor-border p-6 shadow-card">
-            <h2 className="text-xl font-semibold text-vor-navy mb-4">Recent Activity</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl border border-vor-border p-6 shadow-card">
+          <h2 className="text-xl font-semibold text-vor-navy mb-4">Recent Activity</h2>
+          {activities.length === 0 ? (
+            <p className="text-vor-slate">No recent activity</p>
+          ) : (
             <div className="space-y-4">
               {activities.map((activity) => (
                 <ActivityItem
@@ -192,24 +231,27 @@ export default function ClientDashboardPage() {
                 />
               ))}
             </div>
-          </div>
+          )}
+        </div>
 
-          <div className="bg-white rounded-xl border border-vor-border p-6 shadow-card">
-            <h2 className="text-xl font-semibold text-vor-navy mb-4">Upcoming Deadlines</h2>
+        <div className="bg-white rounded-xl border border-vor-border p-6 shadow-card">
+          <h2 className="text-xl font-semibold text-vor-navy mb-4">Scheduled Inspections</h2>
+          {inspections.length === 0 ? (
+            <p className="text-vor-slate">No scheduled inspections</p>
+          ) : (
             <div className="space-y-4">
-              {payments.filter(p => p.status === 'pending').map((payment) => (
-                <DeadlineItem
-                  key={payment.id}
-                  title="Payment Due"
-                  date={new Date(payment.due_date).toLocaleDateString()}
-                  amount={`₦${payment.amount.toLocaleString()}`}
-                  icon={Calendar}
+              {inspections.map((inspection) => (
+                <InspectionItem
+                  key={inspection.id}
+                  property={inspection.property_title}
+                  date={inspection.scheduled_date || inspection.inspection_date}
+                  status={inspection.status}
                 />
               ))}
             </div>
-          </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Quick Actions */}
       <div className="bg-white rounded-xl border border-vor-border p-6 shadow-card">
@@ -323,30 +365,3 @@ function ActivityItem({
   );
 }
 
-function DeadlineItem({
-  title,
-  date,
-  amount,
-  icon: Icon,
-}: {
-  title: string;
-  date: string;
-  amount: string;
-  icon: any;
-}) {
-  return (
-    <div className="flex items-start gap-4 p-4 rounded-lg border border-vor-border">
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-vor-gold text-vor-navy">
-        <Icon className="h-5 w-5" />
-      </div>
-      <div className="flex-1">
-        <p className="font-medium text-vor-navy">{title}</p>
-        <p className="text-sm text-vor-slate">{date}</p>
-        {amount !== 'N/A' && (
-          <p className="text-sm font-semibold text-vor-navy mt-1">{amount}</p>
-        )}
-      </div>
-      <Clock className="h-5 w-5 text-vor-gold" />
-    </div>
-  );
-}

@@ -4,9 +4,40 @@
  * Advanced reports page for admin to access comprehensive system reports
  */
 
+'use client';
+
+import { useState, useEffect } from 'react';
 import { BarChart3, Download, Calendar, DollarSign, Users, TrendingUp, FileText, Plus } from 'lucide-react';
 
 export default function AdminReportsPage() {
+  const [reports, setReports] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadReports();
+  }, []);
+
+  const loadReports = async () => {
+    try {
+      // Mock data for reports
+      const mockReports = [
+        { id: '1', title: 'Monthly Revenue Report', published_at: new Date().toISOString() },
+        { id: '2', title: 'User Activity Report', published_at: new Date().toISOString() },
+      ];
+      setReports(mockReports);
+    } catch (error) {
+      console.error('Error loading reports:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const thisMonthCount = reports.filter(r => {
+    const reportDate = new Date(r.published_at);
+    const now = new Date();
+    return reportDate.getMonth() === now.getMonth() && reportDate.getFullYear() === now.getFullYear();
+  }).length;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -22,10 +53,10 @@ export default function AdminReportsPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard title="Reports Generated" value="156" icon={FileText} color="bg-vor-trust/10 text-vor-trust" />
-        <StatCard title="This Month" value="24" icon={Calendar} color="bg-vor-navy/10 text-vor-navy" />
-        <StatCard title="Scheduled Reports" value="8" icon={BarChart3} color="bg-vor-gold/10 text-vor-gold" />
-        <StatCard title="Data Points" value="1.2M" icon={TrendingUp} color="bg-vor-trust/10 text-vor-trust" />
+        <StatCard title="Reports Generated" value={reports.length.toString()} icon={FileText} color="bg-vor-trust/10 text-vor-trust" />
+        <StatCard title="This Month" value={thisMonthCount.toString()} icon={Calendar} color="bg-vor-navy/10 text-vor-navy" />
+        <StatCard title="Financial Reports" value={reports.filter(r => r.type === 'financial').length.toString()} icon={DollarSign} color="bg-vor-trust/10 text-vor-trust" />
+        <StatCard title="System Reports" value={reports.filter(r => r.type === 'system').length.toString()} icon={FileText} color="bg-vor-navy/10 text-vor-navy" />
       </div>
 
       {/* Report Categories */}
@@ -34,42 +65,42 @@ export default function AdminReportsPage() {
           title="Financial Reports"
           description="Revenue, transactions, and financial performance"
           icon={DollarSign}
-          reports={12}
+          reports={reports.filter(r => r.type === 'financial').length}
           color="bg-vor-trust/10 text-vor-trust"
         />
         <ReportCategoryCard
           title="User Analytics"
           description="User growth, engagement, and behavior analysis"
           icon={Users}
-          reports={18}
+          reports={reports.filter(r => r.type === 'user').length}
           color="bg-vor-navy/10 text-vor-navy"
         />
         <ReportCategoryCard
           title="Investment Performance"
           description="Pool performance, ROI tracking, and investor metrics"
           icon={TrendingUp}
-          reports={15}
+          reports={reports.filter(r => r.type === 'investment').length}
           color="bg-vor-gold/10 text-vor-gold"
         />
         <ReportCategoryCard
           title="Property Analytics"
           description="Property performance, sales data, and market trends"
           icon={BarChart3}
-          reports={22}
+          reports={reports.filter(r => r.type === 'property').length}
           color="bg-vor-trust/10 text-vor-trust"
         />
         <ReportCategoryCard
           title="System Reports"
           description="System health, performance, and security metrics"
           icon={FileText}
-          reports={8}
+          reports={reports.filter(r => r.type === 'system').length}
           color="bg-vor-navy/10 text-vor-navy"
         />
         <ReportCategoryCard
           title="Compliance Reports"
           description="Regulatory compliance and audit reports"
           icon={FileText}
-          reports={6}
+          reports={reports.filter(r => r.type === 'compliance').length}
           color="bg-vor-gold/10 text-vor-gold"
         />
       </div>
@@ -78,34 +109,22 @@ export default function AdminReportsPage() {
       <div className="bg-white rounded-xl border border-vor-border p-6 shadow-card">
         <h2 className="text-xl font-semibold text-vor-navy mb-4">Recently Generated Reports</h2>
         <div className="space-y-4">
-          <ReportRow
-            title="Q2 2026 Financial Summary"
-            type="Financial"
-            date="June 5, 2026"
-            size="2.4 MB"
-            format="PDF"
-          />
-          <ReportRow
-            title="User Growth Analysis - May 2026"
-            type="User Analytics"
-            date="June 1, 2026"
-            size="1.8 MB"
-            format="PDF"
-          />
-          <ReportRow
-            title="Investment Pool Performance Report"
-            type="Investment"
-            date="May 28, 2026"
-            size="3.2 MB"
-            format="Excel"
-          />
-          <ReportRow
-            title="System Health Check - Weekly"
-            type="System"
-            date="May 25, 2026"
-            size="0.5 MB"
-            format="PDF"
-          />
+          {loading ? (
+            <p className="text-vor-slate">Loading reports...</p>
+          ) : reports.length === 0 ? (
+            <p className="text-vor-slate">No reports found</p>
+          ) : (
+            reports.map((report) => (
+              <ReportRow
+                key={report.id}
+                title={report.title}
+                type={report.type || 'Financial'}
+                date={report.published_at ? new Date(report.published_at).toLocaleDateString() : 'N/A'}
+                size="2.4 MB"
+                format="PDF"
+              />
+            ))
+          )}
         </div>
       </div>
 
@@ -113,24 +132,7 @@ export default function AdminReportsPage() {
       <div className="bg-white rounded-xl border border-vor-border p-6 shadow-card">
         <h2 className="text-xl font-semibold text-vor-navy mb-4">Scheduled Reports</h2>
         <div className="space-y-4">
-          <ScheduledReportRow
-            title="Monthly Financial Report"
-            frequency="Monthly"
-            nextRun="July 1, 2026"
-            recipients="admin@vor.com, finance@vor.com"
-          />
-          <ScheduledReportRow
-            title="Weekly User Analytics"
-            frequency="Weekly"
-            nextRun="June 12, 2026"
-            recipients="admin@vor.com, marketing@vor.com"
-          />
-          <ScheduledReportRow
-            title="Daily System Health"
-            frequency="Daily"
-            nextRun="June 7, 2026"
-            recipients="admin@vor.com, dev@vor.com"
-          />
+          <p className="text-vor-slate">No scheduled reports configured. Use the Generate Custom Report button to create reports.</p>
         </div>
       </div>
     </div>

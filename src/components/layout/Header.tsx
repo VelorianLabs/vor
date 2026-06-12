@@ -133,7 +133,7 @@ export function Header() {
           ))}
           <div className="pt-4 flex flex-col gap-2">
             <Button href="/dashboard/client" variant="outline" size="md" className="w-full">
-              Client Dashboard
+              Dashboard
             </Button>
             <Button href="/admin" variant="outline" size="md" className="w-full">
               Admin Portal

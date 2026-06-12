@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase/client';
+import { SignIn } from '@clerk/nextjs';
 import { Button } from '@/components/ui/Button';
 import { Shield, Mail, Lock, LayoutDashboard, Home } from 'lucide-react';
 
@@ -44,24 +44,9 @@ export default function LoginPage() {
         return;
       }
 
-      // Regular user login with Supabase
-      setInfo('Authenticating with Supabase...');
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
-
-      if (signInError) {
-        console.error('Sign in error:', signInError);
-        throw signInError;
-      }
-
-      console.log('Sign in successful, user:', data.user);
-      setSuccess('Authentication successful! Redirecting to dashboard...');
-
-      // Default to client dashboard (profiles table may not exist yet)
-      console.log('Redirecting to client dashboard');
-      router.push('/dashboard/client');
+      // Regular user login with Clerk
+      setInfo('Redirecting to Clerk authentication...');
+      router.push('/sign-in');
     } catch (err: any) {
       console.error('Login error:', err);
       setError(err.message || 'Login failed. Please check your credentials and try again.');
@@ -176,7 +161,7 @@ export default function LoginPage() {
 
             <div className="mt-6 text-center">
               <p className="text-sm text-vor-slate">
-                Don't have an account?{' '}
+                Don&apos;t have an account?{' '}
                 <Link href="/auth/register" className="text-vor-trust font-medium hover:underline">
                   Create one
                 </Link>

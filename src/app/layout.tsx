@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans, Fraunces } from "next/font/google";
 import { RootShell } from "@/components/layout/RootShell";
+import { ClerkProvider } from "@clerk/nextjs";
 // @ts-ignore: allow importing global css without type declarations
 import "./globals.css";
 
@@ -39,10 +40,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${fraunces.variable}`}>
-      <body className="font-sans min-h-screen flex flex-col">
-        <RootShell>{children}</RootShell>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en" className={`${dmSans.variable} ${fraunces.variable}`}>
+        <body className="font-sans min-h-screen flex flex-col">
+          <RootShell>{children}</RootShell>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

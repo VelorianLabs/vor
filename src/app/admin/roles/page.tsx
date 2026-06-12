@@ -4,9 +4,39 @@
  * Roles and permissions management page for admin
  */
 
+'use client';
+
+import { useState, useEffect } from 'react';
 import { Shield, Plus, Search, MoreVertical, Key, Users, CheckCircle, Clock } from 'lucide-react';
 
 export default function AdminRolesPage() {
+  const [roles, setRoles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadRoles();
+  }, []);
+
+  const loadRoles = async () => {
+    try {
+      // Mock data for roles
+      const mockRoles = [
+        { id: '1', name: 'admin', description: 'Administrative functions and management', userCount: 2 },
+        { id: '2', name: 'client', description: 'Property buyers with portfolio access', userCount: 15 },
+        { id: '3', name: 'investor', description: 'Investment participants with marketplace access', userCount: 8 },
+        { id: '4', name: 'contractor', description: 'Construction workers with project access', userCount: 5 },
+      ];
+      setRoles(mockRoles);
+    } catch (error) {
+      console.error('Error loading roles:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const totalUsers = roles.reduce((sum, r) => sum + r.userCount, 0);
+  const totalPermissions = roles.reduce((sum, r) => sum + r.permissionCount, 0);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -22,77 +52,28 @@ export default function AdminRolesPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard title="Total Roles" value="9" icon={Shield} color="bg-vor-trust/10 text-vor-trust" />
-        <StatCard title="Active" value="9" icon={CheckCircle} color="bg-vor-trust/10 text-vor-trust" />
-        <StatCard title="Permissions" value="45" icon={Key} color="bg-vor-navy/10 text-vor-navy" />
-        <StatCard title="Users Assigned" value="1,247" icon={Users} color="bg-vor-gold/10 text-vor-gold" />
+        <StatCard title="Total Roles" value={roles.length.toString()} icon={Shield} color="bg-vor-trust/10 text-vor-trust" />
+        <StatCard title="Active" value={roles.filter(r => r.status === 'active').length.toString()} icon={CheckCircle} color="bg-vor-trust/10 text-vor-trust" />
+        <StatCard title="Permissions" value={totalPermissions.toString()} icon={Key} color="bg-vor-navy/10 text-vor-navy" />
+        <StatCard title="Users Assigned" value={totalUsers.toString()} icon={Users} color="bg-vor-gold/10 text-vor-gold" />
       </div>
 
       {/* Roles Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <RoleCard
-          name="Super Admin"
-          description="Full system access with all permissions"
-          userCount={2}
-          permissionCount={45}
-          status="active"
-        />
-        <RoleCard
-          name="Admin"
-          description="Administrative functions and management"
-          userCount={5}
-          permissionCount={35}
-          status="active"
-        />
-        <RoleCard
-          name="Client"
-          description="Property buyers with portfolio access"
-          userCount={856}
-          permissionCount={12}
-          status="active"
-        />
-        <RoleCard
-          name="Investor"
-          description="Investment participants with marketplace access"
-          userCount={234}
-          permissionCount={15}
-          status="active"
-        />
-        <RoleCard
-          name="Contractor"
-          description="Construction workers with project access"
-          userCount={89}
-          permissionCount={18}
-          status="active"
-        />
-        <RoleCard
-          name="Finance Officer"
-          description="Financial operations and transaction management"
-          userCount={12}
-          permissionCount={22}
-          status="active"
-        />
-        <RoleCard
-          name="Legal Officer"
-          description="Legal verification and compliance management"
-          userCount={8}
-          permissionCount={20}
-          status="active"
-        />
-        <RoleCard
-          name="Survey Officer"
-          description="Land survey and verification access"
-          userCount={15}
-          permissionCount={16}
-          status="active"
-        />
-        <RoleCard
-          name="Sales Officer"
-          description="Sales and CRM functions"
-          userCount={26}
-          permissionCount={14}
-          status="active"
-        />
+        {loading ? (
+          <p className="text-vor-slate">Loading roles...</p>
+        ) : (
+          roles.map((role) => (
+            <RoleCard
+              key={role.name}
+              name={role.name}
+              description={role.description}
+              userCount={role.userCount}
+              permissionCount={role.permissionCount}
+              status={role.status}
+            />
+          ))
+        )}
       </div>
     </div>
   );

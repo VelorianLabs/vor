@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase/client';
+import { SignUp } from '@clerk/nextjs';
 import { Button } from '@/components/ui/Button';
 import { Shield, Mail, Lock, User, Building2, Phone } from 'lucide-react';
 
@@ -34,55 +34,10 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      setInfo('Creating your account...');
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.fullName,
-            phone: formData.phone,
-            company: formData.company,
-            role: 'client',
-          },
-        },
-      });
-
-      if (signUpError) throw signUpError;
-
-      setInfo('Setting up your profile...');
-
-      // Try to create user profile in profiles table (may fail if table doesn't exist)
-      if (data.user) {
-        try {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .insert({
-              id: data.user.id,
-              email: formData.email,
-              full_name: formData.fullName,
-              phone: formData.phone,
-              company: formData.company,
-              role: 'client',
-            });
-
-          if (profileError) {
-            console.error('Profile creation error (table may not exist):', profileError);
-            setSuccess('Account created successfully! Redirecting to dashboard...');
-            // Don't throw - allow registration to continue even if profile table doesn't exist
-          } else {
-            setSuccess('Account created successfully! Redirecting to dashboard...');
-          }
-        } catch (profileError) {
-          console.error('Profile creation error:', profileError);
-          setSuccess('Account created successfully! Redirecting to dashboard...');
-          // Don't throw - allow registration to continue even if profile table doesn't exist
-        }
-      }
-
-      // Smooth transition to dashboard
-      router.push('/dashboard/client');
+      setInfo('Redirecting to Clerk registration...');
+      router.push('/sign-up');
     } catch (err: any) {
+      console.error('Registration error:', err);
       setError(err.message || 'Registration failed. Please try again.');
       setInfo('');
       setLoading(false);

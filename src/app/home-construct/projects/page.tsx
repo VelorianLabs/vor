@@ -2,11 +2,16 @@ import Image from "next/image";
 import { PageHero } from "@/components/layout/PageHero";
 import { DivisionSubnav } from "@/components/layout/DivisionSubnav";
 import { HOME_NAV } from "@/lib/constants/navigation";
-import { constructionProjects } from "@/lib/data/mock";
 
 export const metadata = { title: "Ongoing Projects" };
 
-export default function OngoingProjectsPage() {
+export default async function OngoingProjectsPage() {
+  // Mock construction projects data
+  const constructionProjects = [
+    { id: '1', title: 'Lekki Phase 2', name: 'Lekki Phase 2', location: 'Lagos', state: 'Lagos', status: 'in_progress', progress: 60, units: 50, completionDate: '2025-12-31', image: '/placeholder.jpg', created_at: new Date().toISOString() },
+    { id: '2', title: 'Maitama Estate', name: 'Maitama Estate', location: 'Abuja', state: 'Abuja', status: 'in_progress', progress: 40, units: 30, completionDate: '2026-06-30', image: '/placeholder.jpg', created_at: new Date().toISOString() },
+  ];
+
   return (
     <>
       <PageHero
@@ -16,7 +21,7 @@ export default function OngoingProjectsPage() {
       />
       <DivisionSubnav items={HOME_NAV} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
-        {constructionProjects.map((project) => (
+        {(constructionProjects || []).map((project) => (
           <article
             key={project.id}
             className="grid md:grid-cols-2 gap-6 bg-white rounded-xl border border-vor-border overflow-hidden shadow-card"

@@ -4,9 +4,37 @@
  * Finance management page for admin to oversee all financial operations
  */
 
+'use client';
+
+import { useState, useEffect } from 'react';
 import { DollarSign, TrendingUp, ArrowRightLeft, FileText, Plus, Search, MoreVertical, Calendar, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
 
 export default function AdminFinancePage() {
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadTransactions();
+  }, []);
+
+  const loadTransactions = async () => {
+    try {
+      // Mock data for transactions
+      const mockTransactions = [
+        { id: 'TXN001', type: 'payment', description: 'Property Purchase', amount: 5000000, status: 'completed', source: 'Bank Transfer', created_at: new Date().toISOString() },
+        { id: 'TXN002', type: 'deposit', description: 'Investment Deposit', amount: 10000000, status: 'pending', source: 'Bank Transfer', created_at: new Date().toISOString() },
+      ];
+      setTransactions(mockTransactions);
+    } catch (error) {
+      console.error('Error loading transactions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const totalRevenue = transactions.reduce((sum, t) => sum + (t.amount || 0), 0);
+  const pendingCount = transactions.filter(t => t.status === 'pending').length;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -22,10 +50,10 @@ export default function AdminFinancePage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard title="Monthly Revenue" value="₦45.2M" icon={DollarSign} color="bg-vor-trust/10 text-vor-trust" trend="+18%" />
-        <StatCard title="Total Transactions" value="1,456" icon={ArrowRightLeft} color="bg-vor-navy/10 text-vor-navy" trend="+12%" />
-        <StatCard title="Pending Invoices" value="23" icon={FileText} color="bg-vor-gold/10 text-vor-gold" trend="₦4.2M" />
-        <StatCard title="Growth Rate" value="23%" icon={TrendingUp} color="bg-vor-trust/10 text-vor-trust" trend="+3%" />
+        <StatCard title="Total Revenue" value={`₦${(totalRevenue / 1000000).toFixed(2)}M`} icon={DollarSign} color="bg-vor-trust/10 text-vor-trust" trend="" />
+        <StatCard title="Total Transactions" value={transactions.length.toString()} icon={ArrowRightLeft} color="bg-vor-navy/10 text-vor-navy" trend="" />
+        <StatCard title="Pending" value={pendingCount.toString()} icon={FileText} color="bg-vor-gold/10 text-vor-gold" trend="" />
+        <StatCard title="Completed" value={transactions.filter(t => t.status === 'completed').length.toString()} icon={CheckCircle} color="bg-vor-trust/10 text-vor-trust" trend="" />
       </div>
 
       {/* Recent Transactions */}
@@ -44,42 +72,24 @@ export default function AdminFinancePage() {
           </div>
         </div>
         <div className="space-y-4">
-          <TransactionRow
-            id="TXN-001"
-            type="payment"
-            description="Client payment - VOR-LAG-001"
-            amount="₦1,225,000"
-            date="June 5, 2026"
-            status="completed"
-            source="Paystack"
-          />
-          <TransactionRow
-            id="TXN-002"
-            type="deposit"
-            description="Investor funding - Pool A"
-            amount="₦5,000,000"
-            date="June 5, 2026"
-            status="completed"
-            source="Flutterwave"
-          />
-          <TransactionRow
-            id="TXN-003"
-            type="payout"
-            description="Contractor payment - Phase 1"
-            amount="₦2,500,000"
-            date="June 4, 2026"
-            status="pending"
-            source="Bank Transfer"
-          />
-          <TransactionRow
-            id="TXN-004"
-            type="refund"
-            description="Refund - Overpayment"
-            amount="₦125,000"
-            date="June 3, 2026"
-            status="failed"
-            source="Bank Transfer"
-          />
+          {loading ? (
+            <p className="text-vor-slate">Loading transactions...</p>
+          ) : transactions.length === 0 ? (
+            <p className="text-vor-slate">No transactions found</p>
+          ) : (
+            transactions.map((txn) => (
+              <TransactionRow
+                key={txn.id}
+                id={txn.id}
+                type={txn.type || 'payment'}
+                description={txn.description || 'Transaction'}
+                amount={`₦${(txn.amount || 0).toLocaleString()}`}
+                date={txn.created_at ? new Date(txn.created_at).toLocaleDateString() : 'N/A'}
+                status={txn.status || 'pending'}
+                source={txn.source || 'Bank Transfer'}
+              />
+            ))
+          )}
         </div>
       </div>
 
@@ -87,24 +97,16 @@ export default function AdminFinancePage() {
       <div className="bg-white rounded-xl border border-vor-border p-6 shadow-card">
         <h2 className="text-xl font-semibold text-vor-navy mb-4">Financial Alerts</h2>
         <div className="space-y-4">
-          <AlertItem
-            type="warning"
-            title="Overdue Invoices"
-            description="5 invoices overdue totaling ₦850,000"
-            time="2 hours ago"
-          />
-          <AlertItem
-            type="error"
-            title="Failed Transaction"
-            description="Transaction TXN-004 failed - bank transfer declined"
-            time="3 hours ago"
-          />
-          <AlertItem
-            type="info"
-            title="Revenue Milestone"
-            description="Monthly revenue target achieved - ₦45.2M"
-            time="1 day ago"
-          />
+          {pendingCount > 0 ? (
+            <AlertItem
+              type="warning"
+              title="Pending Transactions"
+              description={`${pendingCount} transactions pending review`}
+              time="Recently"
+            />
+          ) : (
+            <p className="text-vor-slate">No financial alerts at this time</p>
+          )}
         </div>
       </div>
     </div>

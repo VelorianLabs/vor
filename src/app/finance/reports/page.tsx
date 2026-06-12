@@ -1,12 +1,17 @@
 import { PageHero } from "@/components/layout/PageHero";
 import { DivisionSubnav } from "@/components/layout/DivisionSubnav";
 import { FINANCE_NAV } from "@/lib/constants/navigation";
-import { financialReports } from "@/lib/data/mock";
 import { Download, FileText } from "lucide-react";
 
 export const metadata = { title: "Financial Reports" };
 
-export default function FinancialReportsPage() {
+export default async function FinancialReportsPage() {
+  // Mock financial reports data
+  const financialReports = [
+    { id: '1', title: 'Q1 2024 Report', published_at: new Date().toISOString(), file_url: '#' },
+    { id: '2', title: 'Annual Report 2023', published_at: new Date().toISOString(), file_url: '#' },
+  ];
+
   return (
     <>
       <PageHero
@@ -17,7 +22,7 @@ export default function FinancialReportsPage() {
       <DivisionSubnav items={FINANCE_NAV} />
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <ul className="space-y-3">
-          {financialReports.map((report) => (
+          {(financialReports || []).map((report: any) => (
             <li
               key={report.id}
               className="flex items-center justify-between gap-4 p-5 bg-white rounded-xl border border-vor-border shadow-card"

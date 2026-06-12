@@ -14,7 +14,7 @@ import { VerificationBadge } from "@/components/ui/VerificationBadge";
 import { GradeBadge } from "@/components/ui/GradeBadge";
 import { Button } from "@/components/ui/Button";
 import { LandMapPlaceholder } from "@/components/maps/LandMapPlaceholder";
-import { landProperties } from "@/lib/data/mock";
+import { InspectionButton } from "@/components/inspection/PropertyDetailWrapper";
 import { formatNaira } from "@/lib/utils/cn";
 
 interface PropertyPageProps {
@@ -22,21 +22,46 @@ interface PropertyPageProps {
 }
 
 export async function generateStaticParams() {
-  return landProperties.map((p) => ({ id: p.id }));
+  // Mock static params
+  return [{ id: '1' }, { id: '2' }];
 }
 
 export async function generateMetadata({ params }: PropertyPageProps) {
   const { id } = await params;
-  const property = landProperties.find((p) => p.id === id);
   return {
-    title: property?.title ?? "Property",
-    description: property?.description,
+    title: "Property Details",
+    description: "View property details",
   };
 }
 
 export default async function PropertyDetailPage({ params }: PropertyPageProps) {
   const { id } = await params;
-  const property = landProperties.find((p) => p.id === id);
+  // Mock property data
+  const property = {
+    id: id,
+    title: 'Prime Land in Lekki',
+    description: '500sqm of prime land in a developing area',
+    state: 'Lagos',
+    lga: 'Ikeja',
+    price: 15000000,
+    size_sqm: 500,
+    sizeSqm: 500,
+    title_type: 'C of O',
+    titleType: 'C of O',
+    investment_grade: 'A',
+    investmentGrade: 'A',
+    roi_projection: 25,
+    roiProjection: 25,
+    verificationStatus: 'verified' as any,
+    images: ['/placeholder.jpg'],
+    image: '/placeholder.jpg',
+    coordinates: { lat: 6.5244, lng: 3.3792 },
+    gps: { lat: 6.5244, lng: 3.3792 },
+    area: 'Lekki Phase 1',
+    documents: [],
+    surveyAvailable: true,
+    created_at: new Date().toISOString(),
+  };
 
   if (!property) notFound();
 
@@ -49,7 +74,7 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
       >
         <div className="flex flex-wrap gap-3">
           <VerificationBadge status={property.verificationStatus} size="md" />
-          <GradeBadge grade={property.investmentGrade} />
+          <GradeBadge grade={property.investmentGrade as any} />
         </div>
       </PageHero>
 
@@ -90,7 +115,7 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
             <section>
               <h2 className="font-display text-xl font-semibold text-vor-navy mb-4">Documents</h2>
               <ul className="space-y-2">
-                {property.documents.map((doc) => (
+                {property.documents.map((doc: any) => (
                   <li
                     key={doc.name}
                     className="flex items-center justify-between p-4 rounded-lg border border-vor-border bg-vor-cream/50"
@@ -142,14 +167,18 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
                 </div>
                 <div className="flex justify-between py-2">
                   <span className="text-vor-slate">Investment grade</span>
-                  <GradeBadge grade={property.investmentGrade} />
+                  <GradeBadge grade={property.investmentGrade as any} />
                 </div>
               </div>
 
               <div className="mt-6 space-y-3">
-                <Button href="/corporate/contact" variant="primary" className="w-full">
-                  Request inspection
-                </Button>
+                <InspectionButton
+                  propertyTitle={property.title}
+                  propertyType="terrain"
+                />
+                <p className="text-xs text-vor-slate text-center">
+                  To proceed with the inspection, we will need to collect the necessary information
+                </p>
                 <Button href="/finance/funding" variant="outline" className="w-full">
                   Explore financing
                 </Button>

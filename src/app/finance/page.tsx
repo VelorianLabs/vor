@@ -2,13 +2,18 @@ import { PageHero } from "@/components/layout/PageHero";
 import { DivisionSubnav } from "@/components/layout/DivisionSubnav";
 import { Button } from "@/components/ui/Button";
 import { FINANCE_NAV } from "@/lib/constants/navigation";
-import { investmentPools } from "@/lib/data/mock";
 import { formatNaira } from "@/lib/utils/cn";
 import { TrendingUp, Shield, BarChart3 } from "lucide-react";
 
 export const metadata = { title: "Investor Portal" };
 
-export default function InvestorPortalPage() {
+export default async function InvestorPortalPage() {
+  // Mock investment pools data
+  const investmentPools = [
+    { id: '1', title: 'Lekki Phase 2 Development', target_amount: 50000000, raised_amount: 35000000, status: 'open', created_at: new Date().toISOString() },
+    { id: '2', title: 'Abuja Estate Project', target_amount: 80000000, raised_amount: 20000000, status: 'open', created_at: new Date().toISOString() },
+  ];
+
   return (
     <>
       <PageHero
@@ -34,7 +39,7 @@ export default function InvestorPortalPage() {
 
         <h2 className="font-display text-2xl font-semibold text-vor-navy mb-6">Open investment pools</h2>
         <div className="space-y-4">
-          {investmentPools.map((pool) => (
+          {(investmentPools || []).map((pool: any) => (
             <div
               key={pool.id}
               className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white rounded-xl border border-vor-border p-6 shadow-card"

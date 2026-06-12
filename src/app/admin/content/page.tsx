@@ -4,9 +4,56 @@
  * Content management page for admin to manage all site content
  */
 
+'use client';
+
+import { useState, useEffect } from 'react';
 import { FileText, Plus, Search, MoreVertical, Edit, Trash2, Calendar, Eye } from 'lucide-react';
 
 export default function AdminContentPage() {
+  const [content, setContent] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
+
+  useEffect(() => {
+    loadContent();
+  }, []);
+
+  const loadContent = async () => {
+    try {
+      // Mock data for content management
+      const mockContent = [
+        { id: '1', title: 'Home Page', type: 'page', status: 'published', updated_at: new Date().toISOString() },
+        { id: '2', title: 'About Us', type: 'page', status: 'published', updated_at: new Date().toISOString() },
+        { id: '3', title: 'Market Updates', type: 'blog', status: 'draft', updated_at: new Date().toISOString() },
+      ];
+      setContent(mockContent);
+    } catch (error) {
+      console.error('Error loading content:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const publishedCount = content.filter(c => c.status === 'published').length;
+  const draftCount = content.filter(c => c.status === 'draft').length;
+  const updatedThisWeek = content.filter(c => {
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    return new Date(c.updated_at) > weekAgo;
+  }).length;
+
+  const getFilteredContent = () => {
+    return content.filter(item => {
+      const matchesSearch = searchQuery === '' || 
+        item.title?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesType = filterType === 'all' || item.type === filterType;
+      const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
+      return matchesSearch && matchesType && matchesStatus;
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -22,10 +69,10 @@ export default function AdminContentPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <StatCard title="Total Pages" value="45" icon={FileText} color="bg-vor-trust/10 text-vor-trust" />
-        <StatCard title="Published" value="42" icon={Eye} color="bg-vor-trust/10 text-vor-trust" />
-        <StatCard title="Drafts" value="3" icon={Edit} color="bg-vor-gold/10 text-vor-gold" />
-        <StatCard title="Updated This Week" value="8" icon={Calendar} color="bg-vor-navy/10 text-vor-navy" />
+        <StatCard title="Total Pages" value={content.length.toString()} icon={FileText} color="bg-vor-trust/10 text-vor-trust" />
+        <StatCard title="Published" value={publishedCount.toString()} icon={Eye} color="bg-vor-trust/10 text-vor-trust" />
+        <StatCard title="Drafts" value={draftCount.toString()} icon={Edit} color="bg-vor-gold/10 text-vor-gold" />
+        <StatCard title="Updated This Week" value={updatedThisWeek.toString()} icon={Calendar} color="bg-vor-navy/10 text-vor-navy" />
       </div>
 
       {/* Search and Filter */}
@@ -35,20 +82,30 @@ export default function AdminContentPage() {
           <input
             type="text"
             placeholder="Search content..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-vor-border rounded-lg focus:outline-none focus:ring-2 focus:ring-vor-gold"
           />
         </div>
-        <select className="px-4 py-2 border border-vor-border rounded-lg focus:outline-none focus:ring-2 focus:ring-vor-gold">
-          <option>All Types</option>
-          <option>Page</option>
-          <option>Blog Post</option>
-          <option>News</option>
+        <select 
+          value={filterType}
+          onChange={(e) => setFilterType(e.target.value)}
+          className="px-4 py-2 border border-vor-border rounded-lg focus:outline-none focus:ring-2 focus:ring-vor-gold"
+        >
+          <option value="all">All Types</option>
+          <option value="page">Page</option>
+          <option value="blog">Blog Post</option>
+          <option value="news">News</option>
         </select>
-        <select className="px-4 py-2 border border-vor-border rounded-lg focus:outline-none focus:ring-2 focus:ring-vor-gold">
-          <option>All Status</option>
-          <option>Published</option>
-          <option>Draft</option>
-          <option>Archived</option>
+        <select 
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="px-4 py-2 border border-vor-border rounded-lg focus:outline-none focus:ring-2 focus:ring-vor-gold"
+        >
+          <option value="all">All Status</option>
+          <option value="published">Published</option>
+          <option value="draft">Draft</option>
+          <option value="archived">Archived</option>
         </select>
       </div>
 
@@ -65,36 +122,21 @@ export default function AdminContentPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-vor-border">
-            <ContentRow
-              title="About VOR"
-              type="Page"
-              status="published"
-              lastUpdated="June 1, 2026"
-            />
-            <ContentRow
-              title="Investment Opportunities"
-              type="Page"
-              status="published"
-              lastUpdated="May 28, 2026"
-            />
-            <ContentRow
-              title="Q2 2026 Market Update"
-              type="Blog Post"
-              status="published"
-              lastUpdated="June 5, 2026"
-            />
-            <ContentRow
-              title="New Partnership Announcement"
-              type="News"
-              status="draft"
-              lastUpdated="June 4, 2026"
-            />
-            <ContentRow
-              title="Fraud Prevention Guidelines"
-              type="Page"
-              status="published"
-              lastUpdated="May 15, 2026"
-            />
+            {loading ? (
+              <tr><td colSpan={5} className="px-6 py-4 text-vor-slate">Loading content...</td></tr>
+            ) : getFilteredContent().length === 0 ? (
+              <tr><td colSpan={5} className="px-6 py-4 text-vor-slate">No content found</td></tr>
+            ) : (
+              getFilteredContent().map((item) => (
+                <ContentRow
+                  key={item.id}
+                  title={item.title}
+                  type={item.type || 'Page'}
+                  status={item.status || 'published'}
+                  lastUpdated={item.updated_at ? new Date(item.updated_at).toLocaleDateString() : 'N/A'}
+                />
+              ))
+            )}
           </tbody>
         </table>
       </div>
